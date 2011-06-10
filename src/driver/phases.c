@@ -2132,6 +2132,9 @@ add_final_ld_args (string_list_t *args)
         add_library(args, "dl");
 #endif // !__FreeBSD__
 
+        // always link C++ programs with math library
+        add_library(args, "m");
+
     }
 
     // static libc should be grouped with libgcc and libeh
