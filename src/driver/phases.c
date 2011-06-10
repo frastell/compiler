@@ -2144,10 +2144,6 @@ add_final_ld_args (string_list_t *args)
         add_arg(args, "-Bstatic");
     }
 
-    if(option_was_seen(O_static_libgcc)) {
-        add_arg(args, "-Bstatic");
-    }
-
     add_library(args, "gcc");
 
     // Exception support library (used by stl and gcc)
