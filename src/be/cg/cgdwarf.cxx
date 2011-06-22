@@ -955,7 +955,10 @@ put_location (
     case SCLASS_UGLOBAL:
     case SCLASS_FSTATIC:
     case SCLASS_PSTATIC:
-      if (base_st != NULL) {
+      if (ST_is_thread_local(st)) {
+        dwarf_add_expr_gen (expr, DW_OP_const8u, base_ofst, 0, &dw_error);
+        dwarf_add_expr_gen (expr, DW_OP_GNU_push_tls_address, 0, 0, &dw_error);
+      } else if (base_st != NULL) {
          //printf ("[2] %s (%s): real base_ofst: %llx, calc base_offset: %"PRId64", ofst: %"PRId64", offs: %d, base_st: %p, st: %p\n", ST_name(st), ST_name(base_st), ST_ofst(base_st), base_ofst, ST_ofst(st), offs, base_st, st) ;
 	dwarf_add_expr_addr_b (expr,
 #if defined( KEY)
