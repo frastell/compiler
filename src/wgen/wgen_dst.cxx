@@ -2858,10 +2858,10 @@ DST_Create_Subprogram (ST *func_st, gs_t fndecl)
         DW_VIRTUALITY_none,     // applies to C++
         0,                      // vtable_elem_location
         FALSE,                  // is_declaration
+        is_prototyped,           // 
 #ifdef KEY
         FALSE,                  // is_artificial
 #endif
-        is_prototyped,           // 
         ! ST_is_export_local(func_st) );  // is_external
     // producer routines think we will set pc to fe ptr initially
     DST_RESET_assoc_fe (DST_INFO_flag(DST_INFO_IDX_TO_PTR(dst)));
