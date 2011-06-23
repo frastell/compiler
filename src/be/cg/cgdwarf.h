@@ -45,7 +45,7 @@
 #if ! defined(BUILD_OS_DARWIN)
 #include "libelf/libelf.h"
 #endif /* ! defined(BUILD_OS_DARWIN) */
-#include <libdwarf.h>
+#include "libdwarf.h"
 #include "dwarf_DST_mem.h"
 
 extern void Cg_Dwarf_Begin (BOOL is_64bit);
