@@ -708,7 +708,7 @@ static void parse_cpnt_dcl_stmt()
 
    found_colon			= FALSE;
    colon_recovery		= TRUE;		   /* Can recover at ::  */
-   type_err			= !parse_type_spec(TRUE, TRUE);  /* Get KIND   */
+   type_err			= !parse_type_spec(TRUE, TRUE, FALSE);  /* Get KIND   */
    type_idx			= ATD_TYPE_IDX(AT_WORK_IDX);
    AT_DCL_ERR(AT_WORK_IDX)	= type_err;
    stmt_number			= statement_number;
@@ -2383,7 +2383,7 @@ void parse_implicit_stmt (void)
                       TOKEN_VALUE(token) != Tok_Kwd_Type &&
                       ch_after_paren_grp() == LPAREN);
 
-         type_err	= !parse_type_spec(have_kind, FALSE);
+         type_err	= !parse_type_spec(have_kind, FALSE, FALSE);
          type_idx	= ATD_TYPE_IDX(AT_WORK_IDX);
 
          if (type_err) { /* No valid type keyword */
@@ -3015,7 +3015,7 @@ parse_enumerator_stmt() {
 
        long kind_idx;
        fld_type field_type;
-       if (parse_int_spec_expr(&kind_idx, &field_type, TRUE, FALSE)) {
+       if (parse_int_spec_expr(&kind_idx, &field_type, TRUE, FALSE, FALSE)) {
 	  OPND_FLD(opnd)		= field_type;
 	  OPND_IDX(opnd)		= kind_idx;
 
@@ -4322,7 +4322,7 @@ void parse_type_dcl_stmt (void)
                                    LA_CH_VALUE == STAR);
    found_colon			= FALSE;
    found_end			= FALSE;
-   type_err			= !parse_type_spec(TRUE, TRUE);
+   type_err			= !parse_type_spec(TRUE, TRUE, FALSE);
    AT_DCL_ERR(AT_WORK_IDX)	= type_err;
    type_idx			= ATD_TYPE_IDX(AT_WORK_IDX);
    array_idx			= NULL_IDX;
@@ -5410,6 +5410,42 @@ EXIT:
 
 }  /* parse_use_stmt */
 #ifdef KEY /* Bug 11741 */
+
+
+/******************************************************************************\
+|*									      *|
+|* Description:								      *|
+|*	Import partially created symbols as part of a blanket IMPORT	      *|
+|*									      *|
+|* Input parameters:							      *|
+|*	NONE								      *|
+|*									      *|
+|* Output parameters:							      *|
+|*	NONE								      *|
+|*									      *|
+|* Returns:								      *|
+|*	NONE								      *|
+|*									      *|
+\******************************************************************************/
+
+void import_partial(void)
+
+{
+    int ln_idx, attr_idx;
+
+    for(ln_idx = SCP_LN_FW_IDX(curr_scp_idx)+1;
+	ln_idx < SCP_LN_LW_IDX(curr_scp_idx);
+	ln_idx++) {
+
+	attr_idx = LN_ATTR_IDX(ln_idx);
+
+	if (AT_OBJ_CLASS(attr_idx) == Data_Obj &&
+	    ATD_CLASS(attr_idx) == Atd_Unknown)
+	    import_from_host(&name_pool[LN_NAME_IDX(ln_idx)].name_char,
+			     LN_NAME_LEN(ln_idx), 0, attr_idx);
+    }
+}
+
 
 /******************************************************************************\
 |*									      *|
@@ -5460,7 +5496,8 @@ void parse_import_stmt(void)
      if (attr_idx != NULL_IDX) {
        /* For "type(t) function()" we have already seen the type name, but we
         * haven't defined it, so we want to import it */
-       if (AT_OBJ_CLASS(attr_idx) == Derived_Type && !AT_DEFINED(attr_idx)) {
+       if ((AT_OBJ_CLASS(attr_idx) == Derived_Type && !AT_DEFINED(attr_idx)) ||
+	   ATD_CLASS(attr_idx) == Atd_Unknown) {
 	 if (import_from_host(TOKEN_STR(token), TOKEN_LEN(token), 0, attr_idx)
 	   == NULL_IDX) {
 	   missing_in_host = TRUE;
@@ -5512,6 +5549,7 @@ void parse_import_stmt(void)
 
    if (!found_list) {
      SCP_IMPORT(curr_scp_idx) = TRUE;
+     import_partial();
    }
 
    TRACE (Func_Exit, "parse_import_stmt", NULL);

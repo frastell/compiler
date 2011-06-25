@@ -455,7 +455,8 @@ extern	void parse_import_stmt (void);
 #ifdef KEY /* Bug 10572 */
 extern	void parse_enum_stmt (void);
 extern	void parse_enumerator_stmt (void);
-extern	boolean	parse_int_spec_expr(long *, fld_type *, boolean, boolean);
+extern	boolean	parse_int_spec_expr(long *, fld_type *, boolean, boolean,
+				    boolean);
 #endif /* KEY Bug 10572 */
 #ifdef KEY /* Bug 14150 */
 extern	void parse_bind_stmt (void);
@@ -512,7 +513,7 @@ extern  void	    	parse_length_selector (int, boolean, boolean);
 #ifdef KEY /* Bug 8422 */
 extern  int		parse_non_char_kind_selector(boolean);
 #endif /* KEY Bug 8422 */
-extern	boolean		parse_type_spec (boolean, boolean);
+extern	boolean		parse_type_spec (boolean, boolean, boolean);
 extern	void		parse_typed_function_stmt (void);
 #ifdef KEY /* Bug 14150 */
 extern int		parse_language_binding_spec(token_type *result);

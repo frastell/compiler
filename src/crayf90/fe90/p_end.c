@@ -273,6 +273,71 @@ static void finish_cdir_id(void)
    TRACE (Func_Exit, "finish_cdir_id", NULL);
 
 } /* finish_cdir_id */
+
+
+
+/******************************************************************************\
+|*									      *|
+|* Description:								      *|
+|*   If the kind specification of the function result hasn't been folded      *|
+|*   yet, fold it now.							      *|
+|*									      *|
+|* Input parameters:							      *|
+|*	Function attribute						      *|
+|*									      *|
+|* Output parameters:							      *|
+|*	NONE								      *|
+|*									      *|
+|* Returns:								      *|
+|*	NOTHING								      *|
+|*									      *|
+\******************************************************************************/
+
+static void function_result_kindspec(void) {
+int line, col, type, function_attr, save, m;
+expr_arg_type expr_desc;
+
+    if (OPND_FLD(function_ret_kindspec) == NO_Tbl_Idx)
+	return;
+
+    expr_desc.rank = 0;
+    expr_mode = Initialization_Expr;
+
+    if (!expr_semantics(&function_ret_kindspec, &expr_desc)) 
+	return;
+
+    line = OPND_LINE_NUM(function_ret_kindspec);
+    col  = OPND_COL_NUM(function_ret_kindspec);
+
+    if (expr_desc.rank != 0) {
+	PRINTMSG(line, 907, Error, col);
+	return;
+    }
+	
+    if (OPND_FLD(function_ret_kindspec) != CN_Tbl_Idx) {
+	PRINTMSG(line, 1531, Error, col);
+	return;
+    }
+
+    function_attr = SCP_ATTR_IDX(curr_scp_idx);
+    save = ATD_TYPE_IDX(AT_WORK_IDX);
+    ATD_TYPE_IDX(AT_WORK_IDX) = function_ret_type;
+
+    m = kind_to_linear_type(&function_ret_kindspec,
+			    AT_WORK_IDX,
+			    expr_desc.kind0seen,
+			    expr_desc.kind0E0seen,
+			    expr_desc.kind0D0seen,
+			    !expr_desc.kindnotconst);
+
+    ATD_TYPE_IDX(AT_WORK_IDX) = save;
+    if (!m)
+	return;
+
+    ATD_TYPE_IDX(ATP_RSLT_IDX(function_attr)) = ATD_TYPE_IDX(AT_WORK_IDX);
+}
+
+
 
 /******************************************************************************\
 |*									      *|
@@ -835,6 +900,11 @@ void parse_end_stmt (void)
       if ( (BLK_TYPE(blk_idx) >= Blockdata_Blk) && 
            (BLK_TYPE(blk_idx) <= Subroutine_Blk) ) {
          finish_cdir_id();
+      }
+
+      if (stmt_type == End_Function_Stmt ||
+	  (BLK_TYPE(blk_idx) == Function_Blk && stmt_type == End_Stmt)) {
+	  function_result_kindspec();
       }
 
       (*end_blocks[BLK_TYPE(blk_idx)]) (FALSE);

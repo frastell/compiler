@@ -3168,6 +3168,8 @@ extern	dump_flags_type		dump_flags;
 extern	long		       *dt_cmp_tbl;  /* Assumes long is word length */
 extern	int			expanded_intrinsic_list;
 extern	expr_mode_type		expr_mode;
+extern  int			function_ret_type;
+extern  opnd_type		function_ret_kindspec;
 #ifdef KEY /* Bug 4232 */
 /* We're processing a statement function definition (rather than a call) so
  * don't create temps to hold the arguments if they're by-reference. */

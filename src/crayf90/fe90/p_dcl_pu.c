@@ -3213,7 +3213,7 @@ void parse_typed_function_stmt()
          SCP_ATTR_IDX(curr_scp_idx) =SCP_ATTR_IDX(SCP_PARENT_IDX(curr_scp_idx));
       }
 
-      type_err	= !parse_type_spec(TRUE, FALSE);  /* TRUE - Check for kind type. */
+      type_err	= !parse_type_spec(TRUE, FALSE, TRUE); /* TRUE - Check for kind type. */
       err_fnd	= type_err;
 
       if (curr_stmt_category == Sub_Func_Stmt_Cat) {

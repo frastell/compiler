@@ -60,9 +60,10 @@ static char USMID[] = "\n@(#)5.0_pl/sources/p_dcl_util.c	5.7	10/28/99 10:03:56\n
 
 static	int	ntr_bnds_tmp_list(opnd_type *);
 #ifndef KEY /* Bug 10572 */
-static	boolean	parse_int_spec_expr(long *, fld_type *, boolean, boolean);
+static	boolean	parse_int_spec_expr(long *, fld_type *, boolean, boolean,
+				    boolean);
 #endif /* KEY Bug 10572 */
-static	void	parse_kind_selector(void);
+static	void	parse_kind_selector(int);
 static	boolean	is_attr_referenced_in_bound(int, int);
 
 
@@ -70,6 +71,10 @@ static	boolean	kind0seen;
 static	boolean	kind0E0seen;
 static	boolean	kind0D0seen;
 static	boolean	kindconstseen;
+
+
+int function_ret_type;
+opnd_type function_ret_kindspec;
 
 /******************************************************************************\
 |*									      *|
@@ -167,7 +172,7 @@ int	parse_array_spec(int	attr_idx)
          /* Get the expression and determine if it is a lower or upper bound. */
          /* If there is a parse error, a constant one is returned.            */
 
-         if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it, FALSE)) {
+         if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it, FALSE, FALSE)) {
             ub_len_idx		= CN_INTEGER_ONE_IDX;
             ub_fld		= CN_Tbl_Idx;
             BD_DCL_ERR(bd_idx)	= TRUE;
@@ -250,7 +255,8 @@ int	parse_array_spec(int	attr_idx)
                line	= LA_CH_LINE;
                column	= LA_CH_COLUMN;
 
-               if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it, FALSE)) {
+               if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it,
+					FALSE, FALSE)) {
 
                   /* Expression parser recovers LA_CH to : ) , or EOS */
 
@@ -633,7 +639,7 @@ intent_type	parse_intent_spec()
 |*									      *|
 \******************************************************************************/
  
-static	void	parse_kind_selector(void)
+static	void	parse_kind_selector(int function_ret_kind_flag)
 
 {
    int		al_idx;
@@ -652,24 +658,38 @@ static	void	parse_kind_selector(void)
    OPND_LINE_NUM(opnd)	= LA_CH_LINE;
    OPND_COL_NUM(opnd)	= LA_CH_COLUMN;
 
-   /* Always FOLD - These should be constants.  If not - it's fatal error. */
+   /* These should usually be constants.  The only case where it is
+    * not is the kind specification of a function's return type.  We
+    * have to check these later. */
 
-   parsing_kind_selector = TRUE;
+   parsing_kind_selector = !function_ret_kind_flag;
    kind0seen = FALSE;
    kind0E0seen = FALSE;
    kind0D0seen = FALSE;
    kindconstseen = FALSE;
 
-   if (parse_int_spec_expr(&kind_idx, &field_type, TRUE, FALSE)) {
+   if (parse_int_spec_expr(&kind_idx, &field_type, TRUE,
+			   FALSE, function_ret_kind_flag)) {
       OPND_FLD(opnd)		= field_type;
       OPND_IDX(opnd)		= kind_idx;
 
-      if (!kind_to_linear_type(&opnd,
-                               AT_WORK_IDX,
-                               kind0seen,
-                               kind0E0seen,
-                               kind0D0seen,
-                               kindconstseen)) {
+      if (function_ret_kind_flag && field_type != CN_Tbl_Idx) {
+	  /* Fold the kindspec later */
+	  function_ret_kindspec = opnd;
+	  function_ret_type = TYP_TYPE(ATD_TYPE_IDX(AT_WORK_IDX));
+
+      } else {
+	  OPND_FLD(function_ret_kindspec) = NO_Tbl_Idx;
+	  OPND_IDX(function_ret_kindspec) = NULL_IDX;
+      }
+
+      if (field_type == CN_Tbl_Idx &&
+	  !kind_to_linear_type(&opnd,
+			       AT_WORK_IDX,
+			       kind0seen,
+			       kind0E0seen,
+			       kind0D0seen,
+			       kindconstseen)) {
          AT_DCL_ERR(AT_WORK_IDX)	= TRUE;
       }
 
@@ -782,7 +802,8 @@ void	parse_length_selector(int	attr_idx,
       }
       else {
 
-         if (!parse_int_spec_expr(&len_idx, &field_type, fold_it, TRUE)) {
+	 if (!parse_int_spec_expr(&len_idx, &field_type, fold_it,
+				  TRUE, FALSE)) {
             len_idx	= CN_INTEGER_ONE_IDX;
             field_type	= CN_Tbl_Idx;
          }
@@ -813,7 +834,8 @@ void	parse_length_selector(int	attr_idx,
          }
          else {
 
-            if (!parse_int_spec_expr(&len_idx, &field_type, fold_it, TRUE)) {
+	    if (!parse_int_spec_expr(&len_idx, &field_type, fold_it,
+				     TRUE, FALSE)) {
                len_idx		= CN_INTEGER_ONE_IDX;
                field_type	= CN_Tbl_Idx;
             }
@@ -1155,7 +1177,7 @@ int name_idx;
 
 	} else {
 	    get_token(Tok_Class_Keyword);
-	    if (parse_type_spec(TRUE, FALSE))
+	    if (parse_type_spec(TRUE, FALSE, FALSE))
 		pp_type_idx = ATD_TYPE_IDX(AT_WORK_IDX);
 
 	    else {
@@ -1202,6 +1224,7 @@ int name_idx;
 |*	chk_kind - TRUE if check for kind (or kind/len for character) on type *|
 |*			spec				                      *|
 |*      proc_ok  - TRUE if it is OK for a PROCEDURE decl to be here           *|
+|*      func_type - TRUE if this type is a function return type               *|
 |*                                                                            *|
 |* Output parameters:							      *|
 |*	NONE								      *|
@@ -1216,7 +1239,7 @@ int name_idx;
 |*                                                                            *|
 \******************************************************************************/
 
-boolean parse_type_spec(boolean chk_kind, boolean proc_ok)
+boolean parse_type_spec(boolean chk_kind, boolean proc_ok, boolean func_type)
 
 {
    int			 al_idx;
@@ -1304,7 +1327,7 @@ boolean parse_type_spec(boolean chk_kind, boolean proc_ok)
             }
 
             if (do_kind_first) {
-               parse_kind_selector();
+               parse_kind_selector(FALSE);
 
                if (LA_CH_VALUE == COMMA) {
                   NEXT_LA_CH;			/* Skip comma */
@@ -1329,7 +1352,7 @@ boolean parse_type_spec(boolean chk_kind, boolean proc_ok)
 
                if (LA_CH_VALUE == COMMA) {
                   NEXT_LA_CH;			/* Skip comma */
-                  parse_kind_selector();
+                  parse_kind_selector(FALSE);
                }
             }
 
@@ -1643,7 +1666,7 @@ boolean parse_type_spec(boolean chk_kind, boolean proc_ok)
       if (chk_kind && LA_CH_VALUE == LPAREN) {
            
          NEXT_LA_CH;			/* Skip Lparen */
-         parse_kind_selector();
+         parse_kind_selector(func_type);
 
          if (LA_CH_VALUE == RPAREN || parse_err_flush(Find_Rparen,  ")")) {
             NEXT_LA_CH;			/* Skip Rparen */
@@ -3279,9 +3302,10 @@ boolean merge_target(boolean	chk_semantics,
 static
 #endif /* KEY Bug 10572 */
 boolean	parse_int_spec_expr(long		*len_idx,
-				    fld_type		*field_type,
-				    boolean		 fold_it,
-				    boolean		 char_len)
+			    fld_type		*field_type,
+			    boolean		fold_it,
+			    boolean		char_len,
+			    boolean		function_ret_kind)
 
 {
    int			column;
@@ -3303,10 +3327,13 @@ boolean	parse_int_spec_expr(long		*len_idx,
    xref_state		= CIF_Symbol_Reference;
    *field_type		= CN_Tbl_Idx;
    *len_idx		= CN_INTEGER_ONE_IDX;
-   expr_mode		= fold_it ? Initialization_Expr : Specification_Expr;
    line			= LA_CH_LINE;
    column		= LA_CH_COLUMN;
    expr_desc		= init_exp_desc;
+
+   expr_mode		= fold_it
+       ? (function_ret_kind ? Regular_Expr : Initialization_Expr)
+       : Specification_Expr;
 
    if (!parse_expr(&len_opnd)) {
       parse_ok	= FALSE;
@@ -3330,8 +3357,16 @@ boolean	parse_int_spec_expr(long		*len_idx,
       }
 
       if (OPND_FLD(len_opnd) != CN_Tbl_Idx) {
-         PRINTMSG(line, 1531, Error, column);
-         parse_ok	= FALSE;
+	  if (function_ret_kind) {
+	      *field_type = OPND_FLD(len_opnd);
+	      *len_idx    = OPND_IDX(len_opnd);
+	      parse_ok    = TRUE;
+
+	  } else {
+	      PRINTMSG(line, 1531, Error, column);
+	      parse_ok	= FALSE;
+	  }
+
          goto EXIT;
       }
 
@@ -3446,6 +3481,7 @@ boolean	parse_int_spec_expr(long		*len_idx,
 # endif
 
    }
+
    else {
 
 # if (defined(_TARGET_OS_IRIX) || defined(_TARGET_OS_LINUX)) || defined(_TARGET_OS_DARWIN)
@@ -4138,7 +4174,8 @@ int     parse_pe_array_spec(int    attr_idx)
          /* Get the expression and determine if it is a lower or upper bound. */
          /* If there is a parse error, a constant one is returned.            */
 
-         if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it, FALSE)) {
+         if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it,
+				  FALSE, FALSE)) {
             ub_len_idx          = CN_INTEGER_ONE_IDX;
             ub_fld              = CN_Tbl_Idx;
             BD_DCL_ERR(bd_idx)  = TRUE;
@@ -4205,7 +4242,8 @@ int     parse_pe_array_spec(int    attr_idx)
                line     = LA_CH_LINE;
                column   = LA_CH_COLUMN;
 
-               if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it, FALSE)) {
+               if (!parse_int_spec_expr(&ub_len_idx, &ub_fld, fold_it,
+					FALSE, FALSE)) {
 
                   /* Expression parser recovers LA_CH to : ) , or EOS */
 
