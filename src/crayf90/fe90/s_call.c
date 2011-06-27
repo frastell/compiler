@@ -13030,14 +13030,17 @@ DONE:
  */
 static boolean has_array_arg(int start_il_idx)
 {
-   boolean result = FALSE;
-   for (int list_idx = start_il_idx; list_idx && !result;
-      list_idx = IL_NEXT_LIST_IDX(list_idx)) {
-      int info_idx = IL_ARG_DESC_IDX(list_idx);
-      expr_arg_type exp_desc = arg_info_list[info_idx].ed;
-      result = (exp_desc.rank > 0);
-   }
-   return result;
+    int list_idx, info_idx;
+
+    for (list_idx = start_il_idx; list_idx;
+	 list_idx = IL_NEXT_LIST_IDX(list_idx)) {
+
+	info_idx = IL_ARG_DESC_IDX(list_idx);
+	if (info_idx != NULL_IDX && arg_info_list[info_idx].ed.rank > 0)
+	    return TRUE;
+    }
+
+    return FALSE;
 }
 #endif /* KEY Bug 11046 */
 /******************************************************************************\
