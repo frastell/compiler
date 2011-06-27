@@ -472,7 +472,6 @@ init_optimization_passes (void)
   /* All passes needed to lower the function into shape optimizers can
      operate on.  */
   p = &all_lowering_passes;
-  NEXT_PASS (pass_remove_useless_stmts);
   NEXT_PASS (pass_mudflap_1);
   NEXT_PASS (pass_lower_omp);
   NEXT_PASS (pass_lower_cf);

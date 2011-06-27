@@ -1372,7 +1372,7 @@ lower_try_finally (struct leh_state *state, tree *tp)
 
   /* Determine if any exceptions are possible within the try block.  */
   if (using_eh_for_cleanups_p)
-    this_tf.may_throw = get_eh_region_may_contain_throw (this_tf.region);
+    this_tf.may_throw = true;
   if (this_tf.may_throw)
     {
       this_tf.eh_label = create_artificial_label ();
@@ -1445,12 +1445,6 @@ lower_catch (struct leh_state *state, tree *tp)
 
   lower_eh_constructs_1 (&this_state, &TREE_OPERAND (*tp, 0));
 
-  if (!get_eh_region_may_contain_throw (try_region))
-    {
-      *tp = TREE_OPERAND (*tp, 0);
-      return;
-    }
-
   out_label = NULL;
   for (i = tsi_start (TREE_OPERAND (*tp, 1)); !tsi_end_p (i); )
     {
@@ -1512,12 +1506,6 @@ lower_eh_filter (struct leh_state *state, tree *tp)
 
   lower_eh_constructs_1 (&this_state, &TREE_OPERAND (*tp, 0));
 
-  if (!get_eh_region_may_contain_throw (this_region))
-    {
-      *tp = TREE_OPERAND (*tp, 0);
-      return;
-    }
-
   lower_eh_constructs_1 (state, &EH_FILTER_FAILURE (inner));
   TREE_OPERAND (*tp, 1) = EH_FILTER_FAILURE (inner);
 
@@ -1550,12 +1538,6 @@ lower_cleanup (struct leh_state *state, tree *tp)
   this_state.cur_region = this_region;
 
   lower_eh_constructs_1 (&this_state, &TREE_OPERAND (*tp, 0));
-
-  if (!get_eh_region_may_contain_throw (this_region))
-    {
-      *tp = TREE_OPERAND (*tp, 0);
-      return;
-    }
 
   /* Build enough of a try-finally state so that we can reuse
      honor_protect_cleanup_actions.  */
