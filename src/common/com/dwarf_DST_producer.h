@@ -215,6 +215,7 @@ extern void DST_end_PU(void);
 extern DST_INFO_IDX 
 DST_mk_inlined_subroutine(void * low_pc,
 			  void * high_pc,
+                          USRCPOS srcpos,
 			  DST_INFO_IDX abstract_origin);
 
 
@@ -673,7 +674,7 @@ DST_mk_namelist_item(USRCPOS      decl,            /* Source location */
 		     char        *name             /* Name */);
 #endif
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LIGHTWEIGHT_INLINER)
 extern void
 DST_label_add_name(DST_LABEL *, char *);
 

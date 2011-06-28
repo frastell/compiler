@@ -492,6 +492,7 @@ DST_end_PU(void)
 DST_INFO_IDX 
 DST_mk_inlined_subroutine(void		*low_pc,    /* ptr to front-end label */
 			  void		*high_pc,   /* ptr to front-end label */
+                          USRCPOS       srcpos,
 			  DST_INFO_IDX   abstract_origin)
 {
    DST_INFO_IDX            info_idx;
@@ -509,7 +510,7 @@ DST_mk_inlined_subroutine(void		*low_pc,    /* ptr to front-end label */
    attr_idx = DST_mk_attr(DST_INLINED_SUBROUTINE);
    attr = DST_ATTR_IDX_TO_PTR(attr_idx, DST_INLINED_SUBROUTINE);
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LIGHTWEIGHT_INLINER)
    /* for IPA, low_pc and high_pc are pointers 
     * to struct st_idx
     *	Get_ST_id ((ST *)low_pc, &id, &index);
@@ -527,6 +528,7 @@ DST_mk_inlined_subroutine(void		*low_pc,    /* ptr to front-end label */
    DST_INLINED_SUBROUTINE_abstract_origin(attr) = abstract_origin;
    DST_INLINED_SUBROUTINE_first_child(attr) = DST_INVALID_IDX;
    DST_INLINED_SUBROUTINE_last_child(attr) = DST_INVALID_IDX;
+   DST_INLINED_SUBROUTINE_srcpos(attr) = srcpos;
 
    return DST_init_info(info_idx, DW_TAG_inlined_subroutine, 
 		       flag, attr_idx);
@@ -876,7 +878,7 @@ DST_mk_subprogram(USRCPOS      decl,
 
 
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LIGHTWEIGHT_INLINER)
     /* This function is not needed with _LEGO_CLONER */
 
 /* Turns an existing DW_TAG_subprogram entry into an abstract instance

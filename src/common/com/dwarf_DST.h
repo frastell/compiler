@@ -459,6 +459,7 @@ typedef struct DST_inlined_subroutine
    DST_CHILDREN   child;           /* Formal parameters, and local scope*/
    USRCPOS	  decl;		   /* so can check if cross-file */
    DST_STR_IDX	  abstract_name;   /* "name" for cross-file matching */
+   USRCPOS        srcpos;
 } DST_INLINED_SUBROUTINE;
 
 #define DST_INLINED_SUBROUTINE_low_pc(attr) ((attr)->low_pc)
@@ -469,6 +470,7 @@ typedef struct DST_inlined_subroutine
 #define DST_INLINED_SUBROUTINE_last_child(attr) ((attr)->child.last)
 #define DST_INLINED_SUBROUTINE_decl(attr) ((attr)->decl)
 #define DST_INLINED_SUBROUTINE_abstract_name(attr) ((attr)->abstract_name)
+#define DST_INLINED_SUBROUTINE_srcpos(attr) ((attr)->srcpos)
 
 
 
