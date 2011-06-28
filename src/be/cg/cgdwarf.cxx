@@ -1124,6 +1124,13 @@ put_inlined_subroutine(DST_INLINED_SUBROUTINE *attr, Dwarf_P_Die die)
 	put_decl (DST_INLINED_SUBROUTINE_decl(attr), die);
    }
    else {
+        USRCPOS srcpos = DST_INLINED_SUBROUTINE_srcpos(attr);
+        if (USRCPOS_filenum(srcpos) != 0)
+          dwarf_add_AT_unsigned_const (dw_dbg, die, DW_AT_call_file, 
+			   (UINT32)USRCPOS_filenum(srcpos), &dw_error);
+        if (USRCPOS_linenum(srcpos) != 0)
+          dwarf_add_AT_unsigned_const (dw_dbg, die, DW_AT_call_line, 
+			   (UINT32)USRCPOS_linenum(srcpos), &dw_error);
 	/* same-file inlining */
 	put_reference(
 		DST_INLINED_SUBROUTINE_abstract_origin(attr),

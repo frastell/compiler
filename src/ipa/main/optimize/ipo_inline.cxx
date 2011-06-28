@@ -62,11 +62,9 @@
 #include "ipo_tlog_utils.h"		// for tlog
 #include "ipa_option.h"			// for Trace_IPA
 
-#if (!defined(_STANDALONE_INLINER) && !defined(_LIGHTWEIGHT_INLINER))
 #include "dwarf_DST_producer.h"		// for DST_*
 #include "clone_DST_utils.h"		// for DST_enter_inlined_subroutine
 #include "ipaa.h"			// IPAA_NODE_INFO
-#endif // _STANDALONE_INLINER
 
 #include "ipo_inline.h"
 
@@ -1650,11 +1648,8 @@ IPO_INLINE::Pre_Process_Caller (LABEL_IDX& return_label)
     // 
     Recognize_Caller_MP (Caller_node (), Callee_node ());
       
-    if (Callee_Summary_Proc()->Has_early_returns())
-	New_LABEL (Caller_level (), return_label);
-    else
-	return_label = 0;
-
+    LABEL &label = New_LABEL (Caller_level (), return_label);
+    label.flags |= LABEL_ADDR_SAVED;
 } // IPO_INLINE::Pre_Process_Caller() 
 
 
@@ -4473,15 +4468,14 @@ IPO_INLINE::Post_Process_Caller (IPO_INLINE_AUX& aux)
     Insert_Block_Around (parent_wn, call, aux.copy_in_block,
 			 aux.copy_out_block);
 
-    if (Callee_Summary_Proc()->Has_early_returns()) {
-	if (IPA_Enable_DST)
-	    New_LABEL (Caller_level (), aux.entry_label);
-	else
-	    aux.entry_label = 0;
+    if (IPA_Enable_DST) {
+      LABEL &label = New_LABEL (Caller_level (), aux.entry_label);
+      label.flags |= LABEL_ADDR_SAVED;
+    } else
+      aux.entry_label = 0;
 
-	Insert_Labels (call, aux.return_label, aux.entry_label,
-		       aux.inlined_body);
-    }
+    Insert_Labels (call, aux.return_label, aux.entry_label,
+                   aux.inlined_body);
   
     // Finally, replace the call by the inlined block
     if (WN_first (aux.inlined_body) != NULL) {
@@ -4678,7 +4672,6 @@ IPO_INLINE::Process()
 #endif // KEY
   }
 
-#if (!defined(_STANDALONE_INLINER) && !defined(_LIGHTWEIGHT_INLINER))
   if (IPA_Enable_DST) {
     /* the following is to set DST_SUBPROGRAM_decl_inline flag
      * appropiately for the callee
@@ -4693,15 +4686,18 @@ IPO_INLINE::Process()
      * for the inlined routine in the caller's DST
      */
 
+    USRCPOS srcpos;
+    USRCPOS_srcpos(srcpos) = WN_Get_Linenum(Call_edge()->Whirl_Node());
     DST_enter_inlined_subroutine(Caller_dst(), Callee_dst(),
 				 aux_info.entry_label, aux_info.return_label,
 				 Caller_file_dst(),
 				 Callee_file_dst(),
 				 Symtab(), Caller_node ()->Mem_Pool (),
 				 Callee_node ()->Mem_Pool (),
-				 same_file ? 0 : Callee_cross_file_id());
+				 same_file ? 0 : Callee_cross_file_id(),
+				 srcpos
+                                 );
   }
-#endif // _STANDALONE_INLINER
 
 } // IPO_INLINE::Process
 

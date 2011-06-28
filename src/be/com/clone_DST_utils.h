@@ -56,7 +56,8 @@ DST_enter_inlined_subroutine(DST_IDX parent,
                              IPO_SYMTAB *symtab,
                              MEM_POOL *caller_file_m,
                              MEM_POOL *callee_file_m,
-                             mUINT16 cross_file_id);
+                             mUINT16 cross_file_id,
+                             USRCPOS srcpos);
 
 extern DST_IDX 
 DST_enter_cloned_subroutine(DST_IDX parent, 

@@ -2046,10 +2046,12 @@ Adjust_Entry(BB *bb)
       mUINT8 reg_id = REGISTER_machine_id (TN_register_class(tn),
                                            TN_register(tn));
 
-      if (sr.temp != NULL)
-	continue;
-      Build_OP(Is_Target_64bit() ? TOP_pushq : TOP_pushl, SP_TN, sr.ded_tn, 
-      	       SP_TN, &ops);
+      if (sr.temp == NULL) {
+        // XXX: emit a cfi for this register?
+        Build_OP(Is_Target_64bit() ? TOP_pushq : TOP_pushl, SP_TN, sr.ded_tn, 
+      	         SP_TN, &ops);
+        continue;
+      }
       // If we need the DWARF register id's for all registers, we need a 
       // general register mapping from REGISTER_machine_id to DWARF register
       // id. But the following suffices for this case,
