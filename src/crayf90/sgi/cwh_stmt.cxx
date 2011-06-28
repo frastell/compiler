@@ -3065,7 +3065,7 @@ fei_concat(INT32 numops)
      wr = WN_COPY_Tree(wt);
      wt = F90_Wrap_ARREXP(wt);
   } else {
-     wt = cwh_expr_temp(ty,WN_COPY_Tree(rsz),f_T_PASSED);   
+     wt = cwh_expr_temp(ty,WN_Intconst(MTYPE_I4,1),f_T_PASSED);   
      wr = WN_COPY_Tree(wt) ;
   }
 
