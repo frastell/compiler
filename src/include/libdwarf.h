@@ -443,7 +443,9 @@ enum {
 };
 
 /* Function prototype definitions. */
-__BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 const char	*_dwarf_errmsg(Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_name(Dwarf_P_Die, char *, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_comp_dir(Dwarf_P_Die, char *, Dwarf_Error *);
@@ -805,6 +807,8 @@ int		dwarf_whatform(Dwarf_Attribute, Dwarf_Half *, Dwarf_Error *);
 int		dwarf_whatform_direct(Dwarf_Attribute, Dwarf_Half *,
 		    Dwarf_Error *);
 void		dwarf_dealloc(Dwarf_Debug, Dwarf_Ptr, Dwarf_Unsigned);
-__END_DECLS
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* !_LIBDWARF_H_ */
