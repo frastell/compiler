@@ -393,6 +393,12 @@ DST_enter_cloned_childs(DST_IDX parent,
             e_lbl = make_ST_IDX(Extract_index24(e_lbl) + symtab->Get_cloned_label_last_idx(),
                                 ST_IDX_level(e_lbl));
 
+            /* TODO: When we have an inlined subroutine within an inlined
+             * subroutine we should not emit DW_AT_{low_pc,high_pc} but instead
+             * split that into 3 ranges and emit DW_AT_entry_pc and DW_AT_ranges.
+             * Right now we're getting overlapped regions.
+             */
+
             (void)DST_enter_inlined_subroutine(parent,
 			     child_idx,
                              b_lbl,
