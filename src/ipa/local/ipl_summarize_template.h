@@ -2860,13 +2860,15 @@ SUMMARIZE<program>::Get_symbol_index (const ST *st)
     sym->Set_btype(TY_mtype(ST_type(st)));
   } 
 
-  if (TY_kind(ST_type(st)) == KIND_POINTER) { 
-    if (TY_kind(TY_pointed(ST_type(st))) == KIND_ARRAY)
-      sym->Set_array();
-  } else { 
-    if (TY_kind(ST_type(st)) == KIND_ARRAY)
-      sym->Set_array();
-  } 
+  if (ST_sym_class(st) != CLASS_FUNC) {
+    if (TY_kind(ST_type(st)) == KIND_POINTER) { 
+      if (TY_kind(TY_pointed(ST_type(st))) == KIND_ARRAY)
+        sym->Set_array();
+    } else { 
+      if (TY_kind(ST_type(st)) == KIND_ARRAY)
+        sym->Set_array();
+    }
+  }
 
   if (ST_is_f90_target (st))
       sym->Set_addr_f90_target ();

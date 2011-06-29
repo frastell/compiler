@@ -180,7 +180,7 @@ BOOL OPT_TAIL::Entry_is_well_behaved()
     return FALSE;
 
   // Don't handle varargs functions
-  if (TY_is_varargs(ST_type(WN_st(_entry_wn))))
+  if (TY_is_varargs(ST_pu_type(WN_st_idx(_entry_wn))))
       return FALSE;
 
   // Don't handle structure arguments

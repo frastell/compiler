@@ -1593,7 +1593,7 @@ WGEN_Start_Function(gs_t fndecl)
                                  PU_must_inline (Pu_Table [ST_pu (func_st)]);
     if (!function_has_varargs(fndecl, optimize_varargs_qual))
       // the original TY may have varargs set
-      Clear_TY_is_varargs(ST_type(func_st));
+      Clear_TY_is_varargs(ST_pu_type(ST_st_idx(func_st)));
     else if (!thunk)
 #else
     if (function_has_varargs(fndecl) && !thunk)
