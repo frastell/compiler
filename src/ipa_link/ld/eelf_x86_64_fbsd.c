@@ -1094,34 +1094,34 @@ gldelf_x86_64_fbsd_get_script (int *isfile)
   *isfile = 1;
 
   if (link_info.relocatable && config.build_constructors)
-    return "ldscripts/elf_x86_64_fbsd.xu";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xu";
   else if (link_info.relocatable)
-    return "ldscripts/elf_x86_64_fbsd.xr";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xr";
   else if (!config.text_read_only)
-    return "ldscripts/elf_x86_64_fbsd.xbn";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xbn";
   else if (!config.magic_demand_paged)
-    return "ldscripts/elf_x86_64_fbsd.xn";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xn";
   else if (link_info.pie && link_info.combreloc
 	   && link_info.relro && (link_info.flags & DT_BIND_NOW))
-    return "ldscripts/elf_x86_64_fbsd.xdw";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xdw";
   else if (link_info.pie && link_info.combreloc)
-    return "ldscripts/elf_x86_64_fbsd.xdc";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xdc";
   else if (link_info.pie)
-    return "ldscripts/elf_x86_64_fbsd.xd";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xd";
   else if (link_info.shared && link_info.combreloc
 	   && link_info.relro && (link_info.flags & DT_BIND_NOW))
-    return "ldscripts/elf_x86_64_fbsd.xsw";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xsw";
   else if (link_info.shared && link_info.combreloc)
-    return "ldscripts/elf_x86_64_fbsd.xsc";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xsc";
   else if (link_info.shared)
-    return "ldscripts/elf_x86_64_fbsd.xs";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xs";
   else if (link_info.combreloc && link_info.relro
 	   && (link_info.flags & DT_BIND_NOW))
-    return "ldscripts/elf_x86_64_fbsd.xw";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xw";
   else if (link_info.combreloc)
-    return "ldscripts/elf_x86_64_fbsd.xc";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.xc";
   else
-    return "ldscripts/elf_x86_64_fbsd.x";
+    return "/usr/libdata/ldscripts/elf_x86_64_fbsd.x";
 }
 
 
