@@ -687,8 +687,10 @@ INT IPA_LNO_READ_FILE::Open_Read_File(const char input_file[])
   if (fd < 0)
     return IPALNO_READER_ERROR;
 
-  if (fstat(fd, &stat_buf) != 0)
+  if (fstat(fd, &stat_buf) != 0) {
+    close(fd);
     return IPALNO_READER_ERROR;
+  }
 
   map_addr = (char *) mmap(0, stat_buf.st_size, PROT_READ|PROT_WRITE,
     MAP_PRIVATE, fd, 0);
