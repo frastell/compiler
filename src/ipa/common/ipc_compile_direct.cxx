@@ -423,19 +423,9 @@ size_t ipacom_process_file (char* input_file,
 
 
 static 
-const char*
+std::string
 Get_Annotation_Filename_With_Path (void) {
-    static char buf[MAXPATHLEN];
-
-    if (!Annotation_Filename) { buf[0] = '\0'; }
-    else if (*Annotation_Filename == '/') {
-        strcpy (buf, Annotation_Filename);
-    }else {
-        strcpy (buf, "$$dir/");		// bug 11686
-        strcat (buf, Annotation_Filename);
-    }
-     
-    return &buf[0];
+    return Annotation_Filename;
 }
 
 extern "C"
