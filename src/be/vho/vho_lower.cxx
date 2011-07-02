@@ -2154,6 +2154,7 @@ vho_lower_set_st_addr_info ( WN * wn, ADDRESS_INFO_TYPE code )
     case OPR_LSHR:
     case OPR_COMPLEX:
     case OPR_HIGHMPY:
+    case OPR_RROTATE:
 #if defined( KEY)
     case OPR_COMPOSE_BITS:
 #endif
