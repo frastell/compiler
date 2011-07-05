@@ -194,7 +194,7 @@ DST_enter_mk(DST_PRODUCER_STATE new_state, DST_IDX last_idx)
    DST_ASSERT((DST_IS_FOREIGN_OBJ(idx)) || (DST_INFO_tag(DST_INFO_IDX_TO_PTR(idx)) == required_tag),\
 	      "Found invalid DST_info index")
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LIGHTWEIGHT_INLINER)
     /* these function are not needed with _LEGO_CLONER */
 
 /* set last_file_name so that we can add more files into the files dir */
@@ -532,7 +532,7 @@ DST_mk_inlined_subroutine(void		*low_pc,    /* ptr to front-end label */
 		       flag, attr_idx);
 }
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LIGHTWEIGHT_INLINER)
     /* These are not needed with _LEGO_CLONER */
 
 void
@@ -916,7 +916,7 @@ DST_subprogram_concrete_to_abstract(DST_INFO_IDX subprogram)
 #endif
 
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LEGO_CLONER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LEGO_CLONER) || defined(_LIGHTWEIGHT_INLINER)
 /* Creates a DW_TAG_subprogram entry for a cloned subroutine and returns its idx
  * 
 */

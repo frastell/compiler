@@ -160,6 +160,7 @@ path64_set_multiarch_sources(PATHSCALE_INLINE_SRCS COMMON
 	"../be/com/ipl_lno_util.cxx"
 	"../be/com/cxx_template.cxx"
 	"../be/lno/lwn_util.cxx"
+	"../be/com/clone_DST_utils.cxx"
 )
 
 add_definitions(${PATH64_STDC_FORMAT_MACROS})

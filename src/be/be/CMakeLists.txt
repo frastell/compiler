@@ -75,15 +75,12 @@ SET(PATHSCALE_BE_BE_COMMON_SRCS "../../common/targ_info/access/ti_init.c"
                          "../com/wb_ipl.cxx"
                          "../com/wb_util.cxx"
                          "${PATHSCALE_BINARY_DIR}/be/preg_list.cxx"
-                         "../com/clone.cxx"
-                         "../com/clone_DST_utils.cxx"
                          "../com/com_whirlview.cxx"
                          "../../common/com/config.cxx"
                          "../../common/com/config_cache.cxx"
                          "../../common/com/dra_demangle.cxx"
                          "../../common/com/dwarf_DST.cxx"
                          "../../common/com/dwarf_DST_dump.cxx"
-                         "../../common/com/dwarf_DST_producer.cxx"
                          "../../common/com/fb_info.cxx"
                          "../../common/com/intrn_info.cxx"
                          "../../common/com/ll.cxx"
@@ -141,6 +138,18 @@ SET(PATHSCALE_BE_BE_MIPS_SRCS
                          "../com/mips/quad_sim.cxx"
                            )
 
+SET(PATHSCALE_BE_BE_EXEC_COMMON_SRCS 
+			 "driver.cxx"
+			 "driver_util.cxx"
+			 "iter.cxx"
+			 "../com/phase.cxx"
+# The following files must not be in be.so since they are shared between
+# inline/be/ipa but with if-defs that make them different for each binary
+			 "../com/clone_DST_utils.cxx"
+                         "../com/clone.cxx"
+                         "../../common/com/dwarf_DST_producer.cxx"
+			 )
+
 ADD_DEFINITIONS(
 # Apparently someone likes legos
 	-D_LEGO_CLONER)
@@ -196,8 +205,7 @@ path64_add_multiarch_multiarch_dependencies(be be-static)
 path64_install_multiarch(be)
 
 
-path64_set_multiarch_sources(be_exec_sources COMMON
-                              driver.cxx driver_util.cxx iter.cxx  ../com/phase.cxx)
+path64_set_multiarch_sources(be_exec_sources COMMON ${PATHSCALE_BE_BE_EXEC_COMMON_SRCS})
 path64_add_multiarch_executable(be-exec be_exec_sources)
 # TODO : Must be the elf, elfutil and dwarf built from the source and not a system installed one
 # TODO : Make sure link targets are static

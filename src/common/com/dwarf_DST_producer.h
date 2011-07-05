@@ -673,7 +673,7 @@ DST_mk_namelist_item(USRCPOS      decl,            /* Source location */
 		     char        *name             /* Name */);
 #endif
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LIGHTWEIGHT_INLINER)
 extern void
 DST_label_add_name(DST_LABEL *, char *);
 
@@ -705,7 +705,7 @@ DST_mk_cross_inlined_subroutine(
                  char          *);     
 #endif
 
-#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LEGO_CLONER)
+#if defined(_SUPPORT_IPA) || defined(_STANDALONE_INLINER) || defined(_LEGO_CLONER) || defined(_LIGHTWEIGHT_INLINER)
 extern DST_INFO_IDX
 DST_mk_cloned_subprogram(USRCPOS,
                   char        *,
