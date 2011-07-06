@@ -5731,11 +5731,13 @@ Expand_Replicate (OPCODE op, TN *result, TN *op1, OPS *ops)
     Build_OP(TOP_unpcklpd, result, result, op1, ops);
     break;
   case OPC_V16I4I4REPLICA:
+  case OPC_V16I4U4REPLICA:
   {
-    TY_IDX ty = MTYPE_To_TY( MTYPE_I4 );
+  	TYPE_ID mtype = OPCODE_desc(op);
+    TY_IDX ty = MTYPE_To_TY( mtype );
     ST* st = Gen_Temp_Symbol( ty, "movd" );
     Allocate_Temp_To_Memory( st );
-    Exp_Store( MTYPE_I4, op1, st, 0, ops, 0);
+    Exp_Store( mtype, op1, st, 0, ops, 0);
     Exp_Load( MTYPE_F4, MTYPE_F4, tmp, st, 0, ops, 0);
     Expand_Copy(result, tmp, MTYPE_F4, ops);
     Build_OP(TOP_unpcklps, result, result, tmp, ops);
