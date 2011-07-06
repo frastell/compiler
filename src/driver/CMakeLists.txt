@@ -317,18 +317,22 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     # deb configuration - for debian based distros
     set(PSC_CRT_PATH_x86_64 "/usr/lib")
     set(PSC_CRT_PATH_x86_32 "/usr/lib32")
-    add_driver("deb" "TRUE")
+    add_driver("deb_hash_style" "TRUE")
 
     # rpm configuration - for rpm based distros
     set(PSC_CRT_PATH_x86_64 "/usr/lib64")
     set(PSC_CRT_PATH_x86_32 "/usr/lib")
-    add_driver("rpm" "TRUE")
+    add_driver("rpm_hash_style" "TRUE")
 
-    # sle10 configuration - for SLE10 (--hash-style ld option is not supported)
+    # deb configuration without --hash-style ld option support
+    set(PSC_CRT_PATH_x86_64 "/usr/lib")
+    set(PSC_CRT_PATH_x86_32 "/usr/lib32")
+    add_driver("deb_no_hash_style" "FALSE")
+
+    # rpm configuration without --hash-style ld option support
     set(PSC_CRT_PATH_x86_64 "/usr/lib64")
     set(PSC_CRT_PATH_x86_32 "/usr/lib")
-    add_driver("sle10" "FALSE")
-
+    add_driver("rpm_no_hash_style" "FALSE")
 endif()
 
 
