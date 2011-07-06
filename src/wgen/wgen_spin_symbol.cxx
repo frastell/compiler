@@ -1994,14 +1994,10 @@ Create_ST_For_Tree (gs_t decl_node)
   // For now, work around the problem by making all symbols refereced in
   // cleanups and try handlers as weak.
   if (make_symbols_weak) {
-    if (eclass != EXPORT_LOCAL &&
-	eclass != EXPORT_LOCAL_INTERNAL &&
-	// Don't make symbol weak if it is defined in current file.  Workaround
-	// for SLES 8 linker.  Bug 3758.
-	WEAK_WORKAROUND(st) != WEAK_WORKAROUND_dont_make_weak &&
+    if (gs_tree_code(decl_node) == GS_FUNCTION_DECL &&
+        WEAK_WORKAROUND(st) != WEAK_WORKAROUND_dont_make_weak &&
 	// Don't make builtin functions weak.  Bug 9534.
-	!(gs_tree_code(decl_node) == GS_FUNCTION_DECL &&
-	  gs_decl_built_in(decl_node))) {
+	!gs_decl_built_in(decl_node)) {
       Set_ST_is_weak_symbol (st);
       WEAK_WORKAROUND(st) = WEAK_WORKAROUND_made_weak;
     }
