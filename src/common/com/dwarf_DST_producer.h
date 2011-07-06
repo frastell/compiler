@@ -215,6 +215,7 @@ extern void DST_end_PU(void);
 extern DST_INFO_IDX 
 DST_mk_inlined_subroutine(void * low_pc,
 			  void * high_pc,
+                          USRCPOS srcpos,
 			  DST_INFO_IDX abstract_origin);
 
 

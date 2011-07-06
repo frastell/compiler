@@ -385,8 +385,13 @@ DST_enter_cloned_childs(DST_IDX parent,
 
             DST_INLINED_SUBROUTINE *attr =  DST_ATTR_IDX_TO_PTR(DST_INFO_attributes(DST_INFO_IDX_TO_PTR(child_idx)), DST_INLINED_SUBROUTINE);
 
-            LABEL_IDX b_lbl = DST_ASSOC_INFO_st_index(DST_INLINED_SUBROUTINE_low_pc (attr)) +  symtab->Get_cloned_label_last_idx();
-            LABEL_IDX e_lbl = DST_ASSOC_INFO_st_index(DST_INLINED_SUBROUTINE_high_pc (attr)) +  symtab->Get_cloned_label_last_idx();
+            LABEL_IDX b_lbl = DST_ASSOC_INFO_st_index(DST_INLINED_SUBROUTINE_low_pc (attr));
+            LABEL_IDX e_lbl = DST_ASSOC_INFO_st_index(DST_INLINED_SUBROUTINE_high_pc (attr));
+
+            b_lbl = make_ST_IDX(Extract_index24(b_lbl) + symtab->Get_cloned_label_last_idx(),
+                                ST_IDX_level(b_lbl));
+            e_lbl = make_ST_IDX(Extract_index24(e_lbl) + symtab->Get_cloned_label_last_idx(),
+                                ST_IDX_level(e_lbl));
 
             /* TODO: When we have an inlined subroutine within an inlined
              * subroutine we should not emit DW_AT_{low_pc,high_pc} but instead
@@ -403,7 +408,8 @@ DST_enter_cloned_childs(DST_IDX parent,
 			     symtab,
 			     caller_file_m,
 			     callee_file_m,
-			     parent_file_index);
+			     parent_file_index,
+                             DST_INLINED_SUBROUTINE_srcpos(attr));
 	    break;
 	    }
 	case DW_TAG_lexical_block:
@@ -734,7 +740,8 @@ DST_enter_inlined_subroutine(DST_IDX parent,
 			     IPO_SYMTAB *symtab, 
 			     MEM_POOL *caller_file_m,
 			     MEM_POOL *callee_file_m,
-			     mUINT16 cross_file_id)
+			     mUINT16 cross_file_id,
+                             USRCPOS srcpos)
 {
     DST_INFO_IDX idx;
     SCOPE *old_scope = symtab->Get_orig_scope_tab();
@@ -766,7 +773,7 @@ DST_enter_inlined_subroutine(DST_IDX parent,
 
     if (caller_file_dst == callee_file_dst) {
         idx = DST_mk_inlined_subroutine ((void *)&low_pc, (void *)&high_pc,
-					     abstract_origin); 
+					 srcpos, abstract_origin); 
 
         DST_append_child(parent, idx);
 
