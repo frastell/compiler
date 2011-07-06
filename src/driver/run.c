@@ -602,7 +602,7 @@ run_phase (phases_t phase, char *name, string_list_t *args)
 #ifdef PATH64_ENABLE_PSCLANG
             // bug 10215
             if (is_matching_phase(get_phase_mask(phase), P_psclang)) {
-              run_inline = FALSE;
+              run_inline = TRUE;
             }
 #endif // PATH64_ENABLE_PSCLANG
             break;
