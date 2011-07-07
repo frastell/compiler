@@ -380,7 +380,7 @@ check_for_whirl(char *name, bfd_boolean *is_elf)
 
         int new_size = p32_ehdr->e_shoff + sizeof(Elf32_Shdr)*p32_ehdr->e_shnum;
         lseek(fd, 0, SEEK_SET);
-        second_buf = (char *)alloca(new_size);
+        second_buf = (char *)malloc(new_size);
         size = read(fd, second_buf, new_size);
         p32_ehdr = (Elf32_Ehdr *)second_buf;
 	if (p32_ehdr->e_type == ET_REL && look_for_elf32_section(p32_ehdr, SHT_PROGBITS, WT_PU_SECTION)) {
@@ -389,8 +389,11 @@ check_for_whirl(char *name, bfd_boolean *is_elf)
 #endif 
 	    CLOSE(fd);
 	    FREE(raw_bits);
+            free(second_buf);
 	    return TRUE;
 	}
+
+        free(second_buf);
     }
     else {
 	Elf64_Ehdr *p64_ehdr = (Elf64_Ehdr *)raw_bits;
@@ -399,7 +402,7 @@ check_for_whirl(char *name, bfd_boolean *is_elf)
 
         int new_size = p64_ehdr->e_shoff + sizeof(Elf64_Shdr)*p64_ehdr->e_shnum;
         lseek(fd, 0, SEEK_SET);
-        second_buf = (char *)alloca(new_size);
+        second_buf = (char *)malloc(new_size);
         size = read(fd, second_buf, new_size);
         p64_ehdr = (Elf64_Ehdr *)second_buf;
 	if (p64_ehdr->e_type == ET_REL && look_for_elf64_section(p64_ehdr, SHT_PROGBITS, WT_PU_SECTION)) {
@@ -408,8 +411,11 @@ check_for_whirl(char *name, bfd_boolean *is_elf)
 #endif 
 	    CLOSE(fd);
 	    FREE(raw_bits);
+            free(second_buf);
 	    return TRUE;
 	}
+
+        free(second_buf);
      }
 
     CLOSE(fd);
