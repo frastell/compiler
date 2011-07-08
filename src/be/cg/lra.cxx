@@ -4947,6 +4947,16 @@ Adjust_eight_bit_regs (BB* bb)
   }
 }
 
+static BOOL
+Is_Conflict_opnd_result(OP *op){
+  ISA_REGISTER_SUBCLASS subclass = OP_opnd_reg_subclass(op, 1);
+  REGISTER reg = Single_Register_Subclass(subclass);
+  TN *result = OP_result(op,0);
+  if(reg == REGISTER_UNDEFINED
+  	|| LRA_TN_register(result) != reg)
+  	return FALSE;
+  return TRUE;
+}
 
 /* Convert any OP_x86_style op whose result and opnd0 have different registers
    into x86-style op, by introducing a mov. */
@@ -5019,9 +5029,12 @@ Adjust_X86_Style_For_BB (BB* bb, BOOL* redundant_code, MEM_POOL* pool)
 
     TN* tmp_opnd0;
     BOOL add_copy_after = FALSE;
-    if (TN_register_class(result) == ISA_REGISTER_CLASS_float &&
+	BOOL conflict_opn1_result;
+	conflict_opn1_result = Is_Conflict_opnd_result(op);
+    if ((TN_register_class(result) == ISA_REGISTER_CLASS_float &&
 	TN_register_class(opnd0) == ISA_REGISTER_CLASS_float &&
-	TN_size(result) < TN_size(opnd0)) {
+	TN_size(result) < TN_size(opnd0))
+		|| conflict_opn1_result) {
       // This is for OPs resulting from operations such as REDUCE_ADD whose
       // result type is smaller than the source type.  F8V16F8REDUCE_ADD
       // translates into the SSE instruction "haddpd":
