@@ -8993,7 +8993,7 @@ TN* Exp_Nand_and_Fetch(TN* addr, TN* opnd1, TYPE_ID mtype, OPS* ops,
 
   TN* new_val = Build_TN_Of_Mtype(mtype);
   Build_OP(top_and, new_val, result_tn, opnd1, loop_ops);
-  Build_OP(top_not, opnd1, loop_ops);
+  Build_OP(top_not, new_val, new_val, loop_ops);
 
   TN* tmp = Build_TN_Like(result_tn);
   Build_OP(top_cmpxchg, rflags, tmp, result_tn, new_val, addr, Gen_Literal_TN(0, 4), loop_ops);
@@ -9217,7 +9217,7 @@ TN* Exp_Fetch_and_Nand(TN* addr, TN* opnd1, TYPE_ID mtype, OPS* ops,
 
   TN* new_val = Build_TN_Of_Mtype(mtype);
   Build_OP(top_and, new_val, result_tn, opnd1, loop_ops);
-  Build_OP(top_not, opnd1, loop_ops);
+  Build_OP(top_not, new_val, new_val, loop_ops);
 
   TN* tmp = Build_TN_Like(result_tn);
   Build_OP(top_cmpxchg, rflags, tmp, result_tn, new_val, addr, Gen_Literal_TN(0, 4), loop_ops);
