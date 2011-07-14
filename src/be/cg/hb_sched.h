@@ -61,9 +61,7 @@
 #include "tn_map.h"
 #include "targ_isa_bundle.h"
 #include "ti_bundle.h"
-#ifdef KEY
 #include "cg_dep_graph.h"
-#endif
 
 // Exported interfaces
 #define HBS_BEFORE_GRA             	0x0001

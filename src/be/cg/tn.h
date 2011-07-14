@@ -322,6 +322,79 @@ typedef enum {
 #endif
 } TN_RELOCS;
 
+static const char* tn_reloc_names[] = { "NONE", 
+					"GPREL16", /* 0x01 */
+					"LOW16", 
+					"HIGH16", 
+					"HIGHER",
+					"HIGHEST",
+					"GOT_DISP",
+					"GOT_PAGE",
+					"GOT_OFST",
+					"CALL16",
+					"GOT_HI16",
+					"GOT_LO16",
+					"CALL_HI16",
+					"CALL_LO16",
+					"NEG",
+					"GPSUB",
+					"LO_GPSUB",
+					"HI_GPSUB",
+					"GPIDENT",
+					"LO_GPIDENT",
+					"HI_GPIDENT", /* 0x14 */
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"IA_IMM14", /* 0x20 */
+					"IA_IMM22",
+					"IA_PCREL",
+					"IA_GPREL22",
+					"IA_LTOFF22",
+					"IA_LTOFF_FPTR", /* 0x25 */
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+					"ERROR",
+#ifndef TARG_X8664
+					"ERROR" };
+#else
+                                        "X8664_PC32", /* 0x30 */
+                                        "X8664_32",
+                                        "X8664_64",
+                                        "X8664_GOTPCREL",
+                                        "X8664_TPOFF32",
+                                        "X8664_TPOFF32_seg_reg",
+                                        "X8664_GOTTPOFF", /* 0x36 */
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "ERROR",
+                                        "IA32_ALL",
+                                        "IA32_GOT",
+                                        "IA32_GLOBAL_OFFSET_TABLE" /*0x42 */ };
+#endif
+
+#define TN_RELOCS_Name(reloc) tn_reloc_names[(reloc)]
 
 #define CAN_USE_TN(x)	(x)
 

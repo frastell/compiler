@@ -107,6 +107,11 @@
 #include "flags.h"
 #include "cgdwarf.h"
 #endif
+
+#ifdef TIREX_ENABLED
+#include "tirex.h"
+#endif
+
 #ifdef LAO_ENABLED
 #include "lao_stub.h"               /* for lao_init()/lao_fini() */
 #endif
@@ -125,7 +130,7 @@ extern char *WHIRL_File_Name;
 
 /* Output requested: */
 BOOL Assembly =	FALSE;		/* Assembly code */
-BOOL Lai_Code = FALSE;          /* Lai code */
+BOOL Tirex_Code = FALSE;        /* Tirex code */
 
 /* Have	the OP_REGCOPY operations been translated? */
 BOOL Regcopies_Translated = FALSE;
@@ -141,6 +146,7 @@ static char *Argv0;		    /* argv[0] from main */
 
 /* Default file	extensions: */
 #define	ASM_FILE_EXTENSION ".s"	/* Assembly code file */
+#define TRX_FILE_EXTENSION ".tirex"      /* Tirex file */
 #define LAI_FILE_EXTENSION ".lai"        /* LAI file */
 #define	OBJ_FILE_EXTENSION ".o"	/* Relocatable object file */
 #define DSTDUMP_FILE_EXTENSION ".be.dst" /* DST dump-file extension */
@@ -186,10 +192,11 @@ static BOOL IPFEC_Enable_LICM_overridden = FALSE;
 static BOOL CG_enable_cbpo_overriden = FALSE;
 static BOOL CG_affirm_opt_overridden = FALSE;
 
+static BOOL CG_TIREX_stage_overridden = FALSE;
 static BOOL CG_LAO_activation_overridden = FALSE;
-static BOOL CG_LAO_regiontype_overridden = FALSE;
 static BOOL CG_LAO_conversion_overridden = FALSE;
 static BOOL CG_LAO_coalescing_overridden = FALSE;
+static BOOL CG_LAO_rewriting_overridden = FALSE;
 static BOOL CG_LAO_predication_overridden = FALSE;
 static BOOL CG_LAO_scheduling_overridden = FALSE;
 static BOOL CG_LAO_allocation_overridden = FALSE;
@@ -1169,6 +1176,55 @@ static OPTION_DESC Options_CG[] = {
   { OVK_BOOL,	OV_INTERNAL, TRUE,"rename", "",
     0, 0, 0, &CG_enable_rename, NULL },
 
+#ifdef TIREX_ENABLED
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "TIREX_stage", "",
+    2, 0, 3,	&CG_TIREX_stage, &CG_TIREX_stage_overridden },
+  // LAO TARG_ST part
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_optimization", "",
+    0, 0, 65535,	&CG_LAO_activation, &CG_LAO_activation_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_activation", "",
+    0, 0, 65535,	&CG_LAO_activation, &CG_LAO_activation_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_conversion", "",
+    0, 0, 65535,	&CG_LAO_conversion, &CG_LAO_conversion_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_coalescing", "",
+    0, 0, 65535,	&CG_LAO_coalescing, &CG_LAO_coalescing_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_predication", "",
+    0, 0, 127,	&CG_LAO_predication, &CG_LAO_predication_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_scheduling", "",
+    2, 0, 3,	&CG_LAO_scheduling, &CG_LAO_scheduling_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_allocation", "",
+    2, 0, 3,	&CG_LAO_allocation, &CG_LAO_allocation_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_rcmssolving", "",
+    0, 0, 255,	&CG_LAO_rcmssolving, &CG_LAO_rcmssolving_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_preloading", "",
+    0, 0, 4,	&CG_LAO_preloading, &CG_LAO_preloading_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_l1missextra", "",
+    0, 0, 255,	&CG_LAO_l1missextra, &CG_LAO_l1missextra_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_compensation", "",
+    0, 0, 2,	&CG_LAO_compensation, &CG_LAO_compensation_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_speculation", "",
+    3, 0, 4,	&CG_LAO_speculation, &CG_LAO_speculation_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_relaxation", "",
+    2, 0, 3,	&CG_LAO_relaxation, &CG_LAO_relaxation_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_pipelining", "",
+    2, 0, 7,	&CG_LAO_pipelining, &CG_LAO_pipelining_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_logtimeout", "",
+    0, 0, 15,	&CG_LAO_logtimeout, &CG_LAO_logtimeout_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_renaming", "",
+    2, 0, 3,	&CG_LAO_renaming, &CG_LAO_renaming_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_boosting", "",
+    0, 0, 2,	&CG_LAO_boosting, &CG_LAO_boosting_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_aliasing", "",
+    1, 0, 3,	&CG_LAO_aliasing, &CG_LAO_aliasing_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_prepadding", "",
+    0, 0, 65536,	&CG_LAO_prepadding, &CG_LAO_prepadding_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_postpadding", "",
+    0, 0, 65536,	&CG_LAO_postpadding, &CG_LAO_postpadding_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_overrun", "",
+    0, 0, 65536,	&CG_LAO_overrun, &CG_LAO_overrun_overridden },
+  { OVK_INT32,	OV_INTERNAL,	TRUE, "LAO_opslimit", "",
+    0, 0, 65536,	&CG_LAO_opslimit, &CG_LAO_opslimit_overridden },
+#endif
 #ifdef BCO_ENABLED
   /* Cache Optimizer TARG_St part. */
   { OVK_BOOL,	OV_INTERNAL, TRUE, "emit_bb_freqs", "",
@@ -1642,8 +1698,16 @@ Process_Command_Line (INT argc, char **argv)
 		    Assembly = TRUE;
 		    Asm_File_Name = cp + 2;
 		    break;
+		case 'X':	    /* Tirex file */
+		  Tirex_Code = TRUE;
+		  Trx_File_Name = cp + 2;
+		  break;
 		}
 		break;
+
+	    case 'X':		    /* -X: Produce Tirex file */
+	      Tirex_Code = TRUE;
+	      break;
 
 	    case 's':		    /* -s: Produce assembly file: */
 	    case 'S':		    /* -S: Produce assembly file: */
@@ -1695,13 +1759,23 @@ Prepare_Source (void)
 	    /* Replace source file extension to get assembly file name: */
 	    Asm_File_Name = New_Extension (fname, ASM_FILE_EXTENSION );
 	}
-
 	/* Open	the ASM	file for compilation: */
 	if ( ( Asm_File	= fopen	( Asm_File_Name, "w" ) ) == NULL ) {
 	    ErrMsg ( EC_Asm_Open, Asm_File_Name, errno );
 	    Terminate (1);
 	}
     }
+    if ( Tirex_Code ) {
+      if ( Trx_File_Name == NULL ) {
+	/* Replace source file extension to get Tirex file name: */
+	Trx_File_Name = New_Extension (fname, TRX_FILE_EXTENSION );
+      }      
+      if (strcmp(Trx_File_Name, "-") == 0) Trx_File = stdout;
+      else if ( ( Trx_File	= fopen	( Trx_File_Name, "w" ) ) == NULL ) {
+	ErrMsg ( EC_Trx_Open, Trx_File_Name, errno );
+	Terminate (1);
+      }
+    }  
 
 #if 0
     /* already called by main */
@@ -1867,9 +1941,8 @@ CG_Init (void)
    * prefetch_ahead fromn LNO */
   //    Configure_prefetch_ahead();
 
-#ifdef LAO_ENABLED
+#ifdef TIREX_ENABLED
   if (CG_LAO_activation != 0) {
-    if (!CG_LAO_regiontype_overridden) CG_LAO_regiontype = 1;
     if (!CG_LAO_conversion_overridden) CG_LAO_conversion = 0;
     if (!CG_LAO_predication_overridden) CG_LAO_predication = 0;
     if (!CG_LAO_scheduling_overridden) CG_LAO_scheduling = 2;
@@ -1880,7 +1953,6 @@ CG_Init (void)
     if (!CG_LAO_compensation_overridden) CG_LAO_compensation = 0;
     if (!CG_LAO_speculation_overridden) {
       if (Eager_Level == EAGER_NONE) CG_LAO_speculation = 0;
-      else if (!Enable_Dismissible_Load) CG_LAO_speculation = 2;
       else CG_LAO_speculation = 3;
     }
     if (!CG_LAO_relaxation_overridden) CG_LAO_relaxation = 2;
@@ -1896,9 +1968,11 @@ CG_Init (void)
     if (!CG_LAO_postpadding_overridden) CG_LAO_postpadding = 0;
     if (!CG_LAO_overrun_overridden) CG_LAO_overrun = 0;
     if (!CG_LAO_opslimit_overridden) CG_LAO_opslimit = 1024;
-    lao_init();
   }
+  if (!CG_TIREX_stage_overridden) CG_TIREX_stage = 2;
+  tirex_init(Trx_File);
 #endif
+
 
     /* this has to be done after LNO has been loaded to grep
      * prefetch_ahead fromn LNO */
@@ -1928,6 +2002,10 @@ extern void CG_End_Final();
 void
 CG_Fini (void)
 {
+
+#ifdef TIREX_ENABLED
+  tirex_fini();
+#endif
 
 #ifdef LAO_ENABLED
   if (CG_LAO_activation != 0) {

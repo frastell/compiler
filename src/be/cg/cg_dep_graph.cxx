@@ -5242,6 +5242,177 @@ CG_DEP_Compute_Region_Graph(std::list<BB*>    bb_region,
   }
 }
 
+// -----------------------------------------------------------------------
+// This fuctions computes the memory dependences on a multi-BB region,
+// including cross-BB dependences and loop-carried dependences. (BD3.)
+// -----------------------------------------------------------------------
+void 
+CG_DEP_Compute_Region_MEM_Arcs(std::list<BB*>    bb_list, 
+			    BOOL         compute_cyclic, 
+			    BOOL         memread_arcs)
+{
+
+  // Disable use of dep graph for address analysis
+  // as we don't create register arcs.
+  BOOL old_addr_analysis = CG_DEP_Addr_Analysis;
+  CG_DEP_Addr_Analysis = FALSE;
+
+  Is_True( _cg_dep_bb == NULL && _cg_dep_bbs.empty(),
+	   ( "CG_DEP_Compute_Region_MEM_Arcs:"
+	     " another dep graph currently exists" ) );
+  _cg_dep_bbs = bb_list;
+
+  cyclic = compute_cyclic;
+  include_memread_arcs = memread_arcs;
+
+  Invoke_Init_Routines();
+
+  std::list<BB*>::iterator bb_iter;
+  FOR_ALL_BB_STLLIST_ITEMS_FWD(bb_list, bb_iter) {
+    BB_OP_MAP omap = BB_OP_MAP_Create(*bb_iter, &dep_map_nz_pool);
+    BB_MAP_Set(_cg_dep_op_info, *bb_iter, omap);
+
+    OP *op;
+    FOR_ALL_BB_OPs(*bb_iter, op) {
+      BB_OP_MAP_Set(omap, op, new_op_info());
+    }
+  }
+
+  // Code patterned from Add_MEM_Arcs().
+  {
+    OP *op;
+    UINT16 op_idx;
+    std::list<BB*>::iterator bb_iter;
+
+    /* Count the memory OPs */
+    num_mem_ops = 0;
+    FOR_ALL_BB_STLLIST_ITEMS_FWD(bb_list, bb_iter) {
+      BB *bb = *bb_iter;
+      FOR_ALL_BB_OPs(bb, op) {
+	if (OP_load(op) || OP_like_store(op) || OP_prefetch(op)) {
+	  num_mem_ops++;
+	}
+      }
+    }
+
+    /* Return if there's nothing to do */
+    if (num_mem_ops < 1) goto return_point;
+    if (!cyclic && num_mem_ops == 1) goto return_point;
+
+    /* Initialize data structures used by add_mem_arcs_from */
+    MEM_POOL_Push(&MEM_local_pool);
+    mem_ops = TYPE_L_ALLOC_N(OP *, num_mem_ops);
+
+    op_idx = 0;
+    FOR_ALL_BB_STLLIST_ITEMS_FWD(bb_list, bb_iter) {
+      BB *bb = *bb_iter;
+      FOR_ALL_BB_OPs(bb, op) {
+	if (OP_load(op) || OP_like_store(op) || OP_prefetch(op))
+	  mem_ops[op_idx++] = op;
+      }
+    }
+
+    for (op_idx = 0; op_idx < num_mem_ops; op_idx++) {
+      // Code patterned from add_mem_arcs_from().
+      OP *op = mem_ops[op_idx];
+      UINT16 succ_idx, s, num_definite_arcs = 0;
+      ARC *shortest = NULL, *shortest_to_store = NULL;
+      /* Index of first possible memory successor of <op>. */
+      UINT16 first_poss_succ_idx = cyclic ? 0 : op_idx+1;
+      /* Max number of 0-omega successors of <op>. */
+      UINT16 num_poss_0_succs = num_mem_ops - op_idx - 1;
+      BOOL found_definite_memread_succ = FALSE;
+
+      /* Search through possible memory successors. */
+      for (succ_idx = first_poss_succ_idx; succ_idx < num_mem_ops; succ_idx++) {
+	BOOL definite, have_latency = FALSE;
+	UINT8 omega = 0;
+	OP *succ = mem_ops[succ_idx];
+	ARC *arc;
+	INT16 latency;
+	CG_DEP_KIND kind = OP_load(op) ?
+	  (OP_load(succ) ? CG_DEP_MEMREAD : CG_DEP_MEMANTI) :
+	  (OP_load(succ) ? CG_DEP_MEMIN : CG_DEP_MEMOUT);
+
+	if (OP_volatile(succ) && OP_volatile(op)) kind = CG_DEP_MEMVOL;
+
+#ifdef ENABLE_LOOPSEQ
+	// [CG] Treat user specified sequencial arcs.
+	Add_LOOPSEQ_Arc(op, succ, cyclic ? &omega : NULL, op_idx >= succ_idx);
+#endif
+
+	if (kind == CG_DEP_MEMREAD && !include_memread_arcs) continue;
+
+#ifdef TARG_ST
+	if (get_mem_dep(op, succ, &definite, cyclic ? &omega : NULL, op_idx >= succ_idx))
+#else
+	if (get_mem_dep(op, succ, &definite, cyclic ? &omega : NULL))
+#endif
+	  {
+
+	  // For OOO machine (eg. T5), non-definite memory dependences can be 
+	  // relaxed to edges with zero latency. The belief is that this can 
+	  // help avoid creating false dependences with biased critical info. 
+	
+	  if (!have_latency) latency =
+	    (CG_DEP_Adjust_OOO_Latency && PROC_is_out_of_order() && !definite) ? 
+	    0 : CG_DEP_Latency(op, succ, kind, 0);
+
+	  /* Build a mem dep arc from <op> to <succ> */
+	  if (omega > 0 || succ_idx > op_idx) {
+	    // Rename variables as in new_arc_with_latency.
+	    OP *pred = op;
+	    UINT8 opnd = 0;
+	    BOOL is_definite = definite;
+
+	    // Special-case the cyclic spill dependence arcs because they rely
+	    // on OP_restore_omega, that only works with single BB loops.
+	    if (cyclic && kind == CG_DEP_MEMIN && CGSPILL_Is_Spill_Op(pred) &&
+		CGSPILL_Is_Spill_Op(succ) && OP_store(pred) && OP_load(succ)) {
+	      // Code specialized from new_arc_with_latency().
+
+	      arc = create_arc();
+
+	      kind = CG_DEP_SPILLIN;
+	      latency = CG_DEP_Latency(pred, succ, kind, opnd);
+	      omega = succ_idx <= op_idx;
+
+	      Set_ARC_kind(arc, kind);
+	      Set_ARC_opnd(arc, opnd);
+	      Set_ARC_is_definite(arc, is_definite);
+	      Set_ARC_pred(arc, pred);
+	      Set_ARC_succ(arc, succ);
+	      Set_ARC_omega(arc, omega);
+	      Set_ARC_latency(arc, latency);
+	      Set_ARC_is_dotted(arc, FALSE);
+
+	      attach_arc(arc);
+
+	    } else {
+
+	      arc = new_arc_with_latency(kind, op, succ, latency, omega, 0, definite);
+
+	    }
+	  }
+
+	  found_definite_memread_succ |= (kind == CG_DEP_MEMREAD && definite);
+	}
+      }
+
+    }
+
+    MEM_POOL_Pop(&MEM_local_pool);
+
+    /* This acts as a flag, so be sure to reset it. */
+    mem_op_lat_0 = NULL;
+
+    /* Make add_mem_arcs_from/to crash immediately when <mem_ops> not right */
+    mem_ops = NULL;
+  }
+ return_point:
+  CG_DEP_Addr_Analysis = old_addr_analysis;
+}
+
 
 #ifdef ENABLE_LOOPSEQ
 /*

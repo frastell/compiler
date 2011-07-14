@@ -119,6 +119,9 @@
 #endif
 
 
+// Tirex dump
+#include "tirex.h"
+
 MEM_POOL MEM_local_region_pool;	/* allocations local to processing a region */
 MEM_POOL MEM_local_region_nz_pool;
 
@@ -775,12 +778,29 @@ CG_Generate_Code(
   GRA_LIVE_Rename_TNs();
 #endif
    Set_Error_Phase( "Prepass Scheduling" );
+
+#ifdef TIREX_ENABLED
+  tirex_emit_pu(3);
+#endif
+
 #ifdef LAO_ENABLED
+  // Call the LAO for various SSA optimizations
+  if (CG_LAO_activation & OptimizeActivation_SSAForm) {
+    GRA_LIVE_Recalc_Liveness(region ? REGION_get_rid( rwn) : NULL);
+    GRA_LIVE_Rename_TNs();
+    Set_Error_Phase( "LAO SSA Form Optimizations" );
+    lao_optimize_pu(CG_LAO_activation & OptimizeActivation_SSAForm);
+    if (frequency_verify)
+      FREQ_Verify("LAO SSA Form Optimizations");
+  }
   // Call the LAO for software pipelining and prepass scheduling.
   if (CG_LAO_activation & OptimizeActivation_PrePass) {
     GRA_LIVE_Recalc_Liveness(region ? REGION_get_rid( rwn) : NULL);
     GRA_LIVE_Rename_TNs();
-    LAO_Schedule_Region(TRUE /* before register allocation */, frequency_verify);
+    Set_Error_Phase( "LAO Prepass Optimizations" );
+    lao_optimize_pu(CG_LAO_activation & OptimizeActivation_PrePass);
+    if (frequency_verify)
+      FREQ_Verify("LAO Prepass Optimizations");
     // [SC]: Calculate local register requirements.
     for (BB *bb = REGION_First_BB; bb != NULL; bb = BB_next(bb)) {
       LRA_Compute_Register_Request (bb, &MEM_local_region_pool);
@@ -792,6 +812,11 @@ CG_Generate_Code(
   IGLS_Schedule_Region (TRUE /* before register allocation */);
 #endif
 
+
+#ifdef TIREX_ENABLED
+  tirex_emit_pu(2);
+#endif
+
   // Register Allocation Phase
 #ifdef LAO_ENABLED
   if (CG_LAO_activation & OptimizeActivation_RegAlloc) {
@@ -799,7 +824,7 @@ CG_Generate_Code(
     GRA_LIVE_Recalc_Liveness(region ? REGION_get_rid( rwn) : NULL);	
     GRA_LIVE_Rename_TNs();
     Set_Error_Phase( "LAO RegAlloc Optimizations" );
-    lao_optimize_pu(CG_LAO_activation & OptimizeActivation_RegAlloc, TRUE);
+    lao_optimize_pu(CG_LAO_activation & OptimizeActivation_RegAlloc);
     Check_for_Dump (TP_ALLOC, NULL);
     if (CG_LAO_allocation > 0) {
     // Full register allocation performed by LAO.
@@ -861,6 +886,10 @@ CG_Generate_Code(
     GRA_Finalize_Grants();
   }
 
+#ifdef LAO_ENABLED
+  } /* !CG_LAO_activation */
+#endif
+
 #if defined( KEY)
   /* Optimize control flow (third pass).  Callapse empty GOTO BBs which GRA
      didn't find useful in placing spill code.  Bug 9063. */
@@ -892,11 +921,35 @@ CG_Generate_Code(
     Check_for_Dump ( TP_EBO, NULL );
   }
 
+
+#ifdef TIREX_ENABLED
+  tirex_emit_pu(1);
+#endif
+
 #ifdef LAO_ENABLED
-  if (CG_LAO_activation & (OptimizeActivation_PostPass|
-                              OptimizeActivation_Encode)) {
+  if (CG_LAO_activation & (OptimizeActivation_PostPass)) {
     GRA_LIVE_Recalc_Liveness(region ? REGION_get_rid( rwn) : NULL);
-    LAO_Schedule_Region(FALSE /* after register allocation */, frequency_verify);
+    // Call the LAO for postpass scheduling.
+    Set_Error_Phase( "LAO Postpass Optimizations" );
+    lao_optimize_pu(CG_LAO_activation & (OptimizeActivation_PostPass));
+    if (frequency_verify)
+      FREQ_Verify("LAO Postpass Optimizations");
+#ifdef TARG_ST
+    CGTARG_Resize_Instructions ();
+#endif
+    // Direct call to the bundler, and bypass the IGLS.
+    Set_Error_Phase( "LAO Bundling Optimizations" );
+    REG_LIVE_Analyze_Region();
+    Trace_HB = Get_Trace (TP_SCHED, 1);
+    for (BB *bb = REGION_First_BB; bb; bb = BB_next(bb)) {
+      Handle_All_Hazards(bb);
+      // Handle_All_Hazards will have fixed branch operations with scheduling date -1
+      // Only add notes if the postpass scheduler effectively ran
+      if (Assembly && CG_LAO_Region_Map && BB_length(bb)) Add_Scheduling_Note (bb, NULL);
+    }
+    REG_LIVE_Finish();
+    // Only add notes if the postpass scheduler effectively ran
+    if (Assembly && CG_LAO_Region_Map) Add_Scheduling_Notes_For_Loops ();
   } else {
     IGLS_Schedule_Region (FALSE /* after register allocation */);
   }

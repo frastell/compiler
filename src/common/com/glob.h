@@ -126,7 +126,7 @@ extern char *IR_File_Name;	/* SGIR intermediate file */
 extern char *Ipa_File_Name;	/* IPA file */
 extern char *Asm_File_Name;	/* Assembly file */
 extern char *Ipl_File_Name;     /* ipl output file */
-extern char * Lai_File_Name;     /* LAI file */
+extern char *Trx_File_Name;     /* Tirex file */
 extern char *call_graph_file_name; /* Function call graph file */
 extern char *cord_output_file_name; /* Output file name after function layout */
 extern char *cord_obj_file_name;  /* Object file name which will be reorder function layout */
@@ -153,7 +153,7 @@ extern FILE *Irb_File;		/* ACIR intermediate file */
 extern FILE *IR_File;		/* SGIR intermediate file */
 extern FILE *Ipa_File;		/* IPA file */
 extern FILE *Asm_File;		/* Assembly file */
-extern FILE * Lai_File;          /* LAI file */
+extern FILE *Trx_File;          /* Tirex file */
 extern FILE *Lib_File;		/* Program library file */
 extern FILE *Tim_File;		/* Timing info file (usually trace) */
 
@@ -175,9 +175,9 @@ extern FILE *Tim_File;		/* Timing info file (usually trace) */
 extern INT32 Num_Source_Files;
 
 /* Output requested: */
-extern BOOL Assembly;		/* Assembly code */
-extern BOOL Object_Code;	/* Object code */
-extern BOOL Lai_Code;           /* Lai code */
+extern BOOL Assembly;	  	 /* Assembly code */
+extern BOOL Object_Code;      /* Object code */
+extern BOOL Tirex_Code;           /* Tirex code */
 extern BOOL Symbol_Table_Out;	/* Symbol table output (list or trace) */
 extern BOOL Create_Cycle_Output; /* added by cbq */
 extern BOOL Show_Progress;	/* Report progress to stdout */

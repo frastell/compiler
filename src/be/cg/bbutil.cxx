@@ -2617,6 +2617,21 @@ static BOOL OP_defs_argument( OP* op )
   return FALSE;
 }
 #endif
+/* =======================================================================
+ *
+ *  BB_call_clobbered
+ *
+ *  See interface description.
+ *
+ * =======================================================================
+ */
+REGISTER_SET BB_call_clobbered(BB *bb, ISA_REGISTER_CLASS rc)
+{
+  if (!BB_call(bb)) {
+    return REGISTER_SET_EMPTY_SET;
+  }
+  return REGISTER_CLASS_caller_saves(rc);
+}
 
 
 /* =======================================================================

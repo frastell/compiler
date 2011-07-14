@@ -1209,4 +1209,6 @@ inline BOOL BB_compile(BB *bb)
 void draw_flow_graph(void);
 void verify_flow_graph(void);
 
+extern REGISTER_SET BB_call_clobbered(BB *bb, ISA_REGISTER_CLASS rc);
 #endif /* bb_INCLUDED */
+ 

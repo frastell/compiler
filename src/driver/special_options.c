@@ -193,6 +193,20 @@ turn_off_ipa (char *msg)
 	}
 }
 
+static void
+turn_off_tirex (string msg)
+{
+  int flag;
+  warning (msg);
+  tirex = FALSE;
+  /* remove all tirex flags from option_seen list */
+  FOREACH_OPTION_SEEN(flag) {
+    if (flag == O_X)
+      set_option_unseen(flag);
+  }
+}
+
+
 void
 add_special_options (void)
 {
@@ -376,6 +390,9 @@ add_special_options (void)
 
 	if (option_was_seen(O_S) && ipa == TRUE) {
 		turn_off_ipa ("-IPA -S combination not allowed, replaced with -S");
+	}
+	if (option_was_seen(O_S) && tirex == TRUE) {
+	  turn_off_tirex ("-X -S combination not allowed, replaced with -S");
 	}
 #ifdef IPA_PROFILING_O3_NOT_COEXIST
 	if (instrumentation_invoked == TRUE) {

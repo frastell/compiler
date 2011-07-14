@@ -245,9 +245,11 @@ main()
                     TOP_swp_start,
                     TOP_swp_stop,
 		    TOP_UNDEFINED);
-	Instruction_Group("sse2 clflush",
-	                  TOP_clflush,
-		                TOP_UNDEFINED);
+
+  Instruction_Group("sse2 clflush",
+		    TOP_clflush,
+		    TOP_UNDEFINED);
+
   Operand(0, int64, base);
   Operand(1, simm32, offset);
 

@@ -239,9 +239,15 @@ Process_Command_Line (INT argc, char **argv)
 		    case 'i':
 			Set_Instrumentation_File_Name(cp + 2);
 			break;
+			
                     case 'p':
                         Ipl_File_Name = cp + 2;
                         break;
+		    case 'X':
+		        Trx_File_Name = cp + 2;
+			add_phase_args (PHASE_CG, argv[i]);
+			break;
+			
 		    case 's':	    /* CG-specific */
 		    case 'a':
 			add_phase_args (PHASE_CG, argv[i]);
@@ -343,7 +349,8 @@ Process_Command_Line (INT argc, char **argv)
 		/* else fall through */
 				    /* CG-specific flags */
 	    case 'a':		    /* -align(8,16,32,64) */
-	    case 'S':		    /* -S: Produce assembly file: */
+	    case 'S':		    /* -S: Produce assembly file */
+	    case 'X':               /* -X: Produce tirex file */
 		add_phase_args (PHASE_CG, argv[i]);
 		break;
               

@@ -465,6 +465,13 @@ static char *erglob_rcs_id = "$Source: common/com/SCCS/s.erglob.h $ $Revision: 1
 /* IPA dladd error codes: */
 #define EC_IP_Load_Dso  EC_BASE_FILE+120    /* str, str */
 
+/* Tirex file error codes */
+#define EC_Trx_Exists	EC_BASE_FILE+120	/* str */
+#define EC_Trx_Open	EC_BASE_FILE+121        /* str, err */
+#define EC_Trx_Create	EC_BASE_FILE+122	/* str, err */
+#define EC_Trx_Delete	EC_BASE_FILE+123	/* str, err */
+#define EC_Trx_Close	EC_BASE_FILE+124	/* str, err */
+#define EC_No_Trx	EC_BASE_FILE+125	/* str */
 
 #ifdef __cplusplus
 }

@@ -423,7 +423,7 @@ enum OP_COND_DEF_KIND {
 #define OP_MASK_COPY	  0x00000004 /* Is OP a COPY? */
 #define OP_MASK_FLAG1	  0x00000008 /* temporary flag for local use */
 #define OP_MASK_VOLATILE  0x00000010 /* Is OP a volatile Memop? */
-#define OP_MASK_HOISTED   0x00000020 /* Is there a WN map attatched to a hoisted OP */
+#define OP_MASK_HOISTED   0x00000020 /* Is there a WN map attached to a hoisted OP */
 #define OP_MASK_END_GROUP 0x00000040 /* Is OP end of an instruction group */
 #define OP_MASK_M_UNIT	  0x00000080 /* Is OP assigned to M unit */
 #define OP_MASK_TAIL_CALL 0x00000100 /* Is OP a tail call? */
@@ -522,6 +522,18 @@ extern BOOL OP_has_implicit_interactions(OP*);
  * If target supports predication, predicate operand is always 0.
  * Otherwise, -1.
  */
+
+/* [SC] Sugar for finding OU_xxxx operands. */
+#define OP_findopnd(op,type) ((OP_find_opnd_use((op),type) == (-1)) \
+                              ? NULL \
+                              : OP_opnd((op), OP_find_opnd_use((op),type)))
+#define OP_Opnd1(op)      OP_findopnd(op,OU_opnd1)
+#define OP_Opnd2(op)      OP_findopnd(op,OU_opnd2)
+#define OP_Condition(op)  OP_findopnd(op,OU_condition)
+#define OP_Storeval(op)   OP_findopnd(op,OU_storeval)
+#define OP_Base(op)       OP_findopnd(op,OU_base)
+#define OP_Offset(op)     OP_findopnd(op,OU_offset)
+#define OP_Predicate(op)  OP_findopnd(op,OU_predicate)
 
 
 /* Convenience access macros for properties of the OP */

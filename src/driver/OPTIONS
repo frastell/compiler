@@ -221,7 +221,7 @@
 % just parse and then stop
 -parse	last_phase=earliest_phase(P_any_fe,last_phase);  Cc cfe	self
 	""
--I%D		;		ALL	cpp	"-I%D -include=%D"
+-I%D		;		ALL	cpp,as	"-I%D -include=%D"
 	"add following directory to the include search path list"
 -x%-		set_explicit_lang(option_name,optargs);		ALL	NONE	""
 	"Specify explicit language for input files"
@@ -411,6 +411,12 @@ I-cpp_pic	;		ALL	NONE	"-D_PIC -D__DSO__"
 -VHO:%s		;		ALL	ffe,be,ipl	"-VHO:%s"
 	"option group to control vho lowering"
 
+% Tirex emission related options:
+-X	toggle(&tirex,TRUE);last_phase=earliest_phase(P_be,last_phase);	cc	be	self
+ 	""
+% Minir emission related options:
+-Z	toggle(&minir,TRUE);last_phase=earliest_phase(P_be,last_phase);	cc	be	self
+ 	""
 % C and Fortran listing related options:
 -CLIST:%s	;		Cc	be	"-PHASE:clist -CLIST:%s"
 	"option group to control C source listing of compiler intermediate"

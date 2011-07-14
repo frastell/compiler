@@ -1742,15 +1742,28 @@ add_file_args (string_list_t *args, phases_t index)
 		  add_string(args, buf);
 		}
 
-		/* create .s file */
-		add_string(args, "-s");
 		current_phase = P_be;
-		if (last_phase == P_be && outfile != NULL)
-			input_source = outfile;
-		else
-			input_source = construct_name(the_file,"s");
-		sprintf(buf, "-fs,%s", input_source);
-		add_string(args, buf);
+		/* create tirex file */
+		if (tirex == TRUE) {
+		  /* get name for the output file */
+		  if (last_phase == P_be && outfile != NULL)
+		    input_source = outfile;
+		  else
+		    input_source = construct_name(source_file,"tirex");
+		  sprintf(buf, "-fX,%s", input_source);
+		} else {
+		/* create .s file */
+		  add_string(args, "-s");
+		  if (last_phase == P_be && outfile != NULL)
+		    input_source = outfile;
+		  else
+		    input_source = construct_name(the_file,"s");
+		  sprintf(buf, "-fs,%s", input_source);
+                }
+                add_string(args, buf);
+
+
+
 
 		if (dashdash_flag)
 		  add_string(args,"--");

@@ -285,6 +285,11 @@ extern void  Base_Symbol_And_Offset (
   INT64  *offset_from_base  // Result: offset from primary base
 );
 
+
+// TRUE if the offset from the base symbol is known
+extern BOOL  Base_Offset_Is_Known (
+  ST     *st                // Symbol to analyze
+);
 //----------------------------------------------------------------------
 // Printing routines
 //----------------------------------------------------------------------

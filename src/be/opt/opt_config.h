@@ -80,6 +80,7 @@ static char *opt_configrcs_id = 	opt_config_INCLUDED"$Revision$";
 #define	ERR_FILE_EXTENSION ".e"	/* Error file */
 #define	LST_FILE_EXTENSION ".l"	/* Listing file */
 #define	TRC_FILE_EXTENSION ".t"	/* Trace file */
+#define	TRX_FILE_EXTENSION ".tirex"	/* Tirex code file */
 #define	ASM_FILE_EXTENSION ".s"	/* Assembly code file */
 #define	OBJ_FILE_EXTENSION ".o"	/* Relocatable object file */
 #define DSTDUMP_FILE_EXTENSION ".be.dst" /* DST dump-file extension */

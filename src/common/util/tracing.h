@@ -221,6 +221,7 @@ extern char *Sharps;	/* Sharps w/NL, full page width */
 #define TP_PQS		58	/* Predicate query system */
 #define TP_THR		59	/* Tree-Height reduction */
 #define TP_GRU          60      /* Fuse Spills */
+#define TP_MINIR        61      /* MiniIR dump */
 
 #define TP_TEMP		99	/* Temporary use */
 
@@ -228,7 +229,7 @@ extern char *Sharps;	/* Sharps w/NL, full page width */
  * number above, and TP_COUNT must be at least one larger.
  */
 
-#define TP_LAST		TP_GRU	/* Largest valid phase number */
+#define TP_LAST		TP_MINIR  /* Largest valid phase number */
 #define TP_COUNT	TP_LAST+1	/* Number of valid phase numbers */
 
 /* Extract the phase number from a trace option: */

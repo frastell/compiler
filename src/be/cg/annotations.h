@@ -130,7 +130,7 @@ typedef enum {
   ANNOT_SWITCH         = 7,
   ANNOT_ROTATING_KERNEL = 8,
   ANNOT_ASMINFO        = 9,
-
+  ANNOT_REMAINDERINFO = 10,
 } ANNOTATION_KIND;
 
 class WN;
@@ -158,6 +158,7 @@ typedef struct annotation {
 #define ANNOT_switch(a)		 ((ST *)ANNOT_info(a))
 #define ANNOT_rotating_kernel(a) ((ROTATING_KERNEL_INFO*)ANNOT_info(a))
 #define ANNOT_asminfo(a)	 ((ASMINFO *)ANNOT_info(a))
+#define ANNOT_remainderinfo(a)	((REMAINDERINFO *)ANNOT_info(a))
 
 /* ======================================================================
  * LOOPINFO
@@ -196,6 +197,16 @@ typedef struct loopinfo {
 #define LOOPINFO_srcpos(x)		((x)->srcpos)
 #define LOOPINFO_line(x)		(Srcpos_To_Line(LOOPINFO_srcpos(x)))
 #define LOOPINFO_trip_count_tn(x)	((x)->primary_trip_count_tn)
+
+/* Annotation attached to blocks of remainder loops. */
+typedef struct remainderinfo {
+  void *head_bb;			/* Effective loop head. */
+} REMAINDERINFO;
+
+// [HK] ISO C++ forbids cast to non-reference type used as lvalue
+//  #define REMAINDERINFO_head_bb(i) ((BB *)(i)->head_bb)
+#define REMAINDERINFO_head_bb(i) (*((BB **)&(i)->head_bb))
+
 
 
 

@@ -1362,6 +1362,29 @@ Base_Symbol_And_Offset (ST     *st,
   *offset_from_base = ofst;
 }
 
+/* ====================================================================
+ *
+ * Base_Offset_Is_Known
+ *      Input:  ST *st                   Symbol to analyze
+ *      Result:                          TRUE if the offset from
+ *                                       Base_Symbol(st) is known.
+ *
+ *
+ * ====================================================================
+ */
+BOOL
+Base_Offset_Is_Known (ST     *st)
+{
+  ST *base = st;
+  while (ST_base (base) != base) {
+    if (ST_sclass (base) == SCLASS_TEXT)
+      return FALSE;
+    base = ST_base (base);
+  }
+  return TRUE;
+}
+
+
 
 //----------------------------------------------------------------------
 // Printing routines

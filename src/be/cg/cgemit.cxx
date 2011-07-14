@@ -124,6 +124,7 @@
 
 #include "calls.h"
 #include "cgemit.h"
+#include "tirex.h"
 #include "cgtarget.h"
 #include "irbdata.h"
 #include "em_elf.h"
@@ -1008,14 +1009,18 @@ static void Print_Label (FILE *pfile, ST *st, INT64 size)
 #if ! defined(BUILD_OS_DARWIN) && ! defined(_WIN32)
     if (size != 0 && !CG_inhibit_size_directive) {
 	/* if size is given, then emit value for asm */
+      if (Assembly) {
       	fprintf ( pfile, "\t%s\t", AS_SIZE);
 	EMT_Write_Qualified_Name(pfile, st);
 	fprintf ( pfile, ", %" SCNd64 "\n", size);
+      }
     }
 #endif /* defined(BUILD_OS_DARWIN) */
     Base_Symbol_And_Offset (st, &base_st, &base_ofst);
-    EMT_Write_Qualified_Name (pfile, st);
-    fprintf ( pfile, ":\t%s 0x%" SCNx64 "\n", ASM_CMNT, base_ofst);
+    if (Assembly) {
+      EMT_Write_Qualified_Name (pfile, st);
+      fprintf ( pfile, ":\t%s 0x%" SCNx64 "\n", ASM_CMNT, base_ofst);
+    }
 }
 
 static void
@@ -1044,16 +1049,16 @@ Print_Common (FILE *pfile, ST *st)
     EMT_Write_Qualified_Name(pfile, st);
 #ifdef TARG_X8664
 #if defined(BUILD_OS_DARWIN) || defined(_WIN32) /* .comm alignment arg not allowed */
-    fprintf ( pfile, ", %" SCNd64 "\n", TY_size(ST_type(st)));
+    fprintf ( pfile, ", %" PRId64 "\n", TY_size(ST_type(st)));
 #else /* defined(BUILD_OS_DARWIN) */
     if (LNO_Run_Simd && Simd_Align && TY_size(ST_type(st)) >= 16)
-      fprintf ( pfile, ", %" SCNd64 ", 16\n", TY_size(ST_type(st)));
+      fprintf ( pfile, ", %" PRId64 ", 16\n", TY_size(ST_type(st)));
     else
-      fprintf ( pfile, ", %" SCNd64 ", %d\n", 
+      fprintf ( pfile, ", %" PRId64 ", %d\n", 
  	TY_size(ST_type(st)), TY_align(ST_type(st)));
 #endif /* defined(BUILD_OS_DARWIN) */
 #else
-    fprintf ( pfile, ", %" SCNd64 ", %d\n", 
+    fprintf ( pfile, ", %" PRId64 ", %d\n", 
 		TY_size(ST_type(st)), TY_align(ST_type(st)));
 #endif
     // this is needed so that we don't emit commons more than once
@@ -1420,12 +1425,12 @@ r_apply_l_const (
 	hexfmt = TRUE;
       }
 #ifndef KEY
-      vstr_sprintf (buf, vstr_len(*buf), (hexfmt ? "0x%" SCNx64 "" : "%" SCNd64 ""), val );
+      vstr_sprintf (buf, vstr_len(*buf), (hexfmt ? "0x%" SCNx64 "" : "%" PRId64 ""), val );
 #else
       if ( TN_is_reloc_low16(t) )
 	vstr_sprintf (buf, vstr_len(*buf), "%hd", (signed short)val );
       else {
-	vstr_sprintf (buf, vstr_len(*buf), (hexfmt ? "0x%" SCNx64 "" : "%" SCNd64 ""), val );
+	vstr_sprintf (buf, vstr_len(*buf), (hexfmt ? "0x%" SCNx64 "" : "%" PRId64 ""), val );
       }
 #endif
       return TRUE;
@@ -1536,13 +1541,13 @@ r_apply_l_const (
   }
   else if ( TN_has_value(t) ) {
 #ifdef TARG_X8664
-    vstr_sprintf (buf, vstr_len(*buf),  (hexfmt ? "0x%" SCNx64 "" : "%" SCNd64 ""), TN_value(t) );
+    vstr_sprintf (buf, vstr_len(*buf),  (hexfmt ? "0x%" SCNx64 "" : "%" PRId64 ""), TN_value(t) );
 #else
     if ( TN_size(t) <= 4 )
       vstr_sprintf (buf, vstr_len(*buf), 
 		(hexfmt ? "0x%x" : "%d"), (mINT32)TN_value(t) );
     else
-      vstr_sprintf (buf, vstr_len(*buf),  (hexfmt ? "0x%" SCNx64 "" : "%" SCNd64 ""), TN_value(t) );
+      vstr_sprintf (buf, vstr_len(*buf),  (hexfmt ? "0x%" SCNx64 "" : "%" PRId64 ""), TN_value(t) );
 #endif /* TARG_X8664 */
 
     print_TN_offset = FALSE;	/* because value used instead */
@@ -2002,7 +2007,7 @@ static INT r_assemble_binary ( OP *op, BB *bb, ISA_PACK_INST *pinst )
 	}
 
 	FmtAssert (ISA_LC_Value_In_Class(val, OP_opnd_lit_class(op, i)),
-		   ("branch offset %" SCNd64 " doesn't fit; try recompiling with "
+		   ("branch offset %" PRId64 " doesn't fit; try recompiling with "
 		    "-CG:longbranch_limit=[try values smaller than %d]", 
 		    val, EMIT_Long_Branch_Limit));
       } 
@@ -2080,13 +2085,13 @@ static INT r_assemble_binary ( OP *op, BB *bb, ISA_PACK_INST *pinst )
 	  else {
 #ifdef TARG_IA64
 	    FmtAssert (ISA_LC_Value_In_Class(val, LC_i16),
-		("immediate value %" SCNd64 " too large for GPREL relocation", val));
+		("immediate value %" PRId64 " too large for GPREL relocation", val));
 #elif TARG_X8664
 	    FmtAssert (ISA_LC_Value_In_Class(val, LC_simm32),
-		("immediate value %" SCNd64 " too large for GPREL relocation", val));
+		("immediate value %" PRId64 " too large for GPREL relocation", val));
 #else
 	    FmtAssert (ISA_LC_Value_In_Class(val, LC_simm16),
-		("immediate value %" SCNd64 " too large for GPREL relocation", val));
+		("immediate value %" PRId64 " too large for GPREL relocation", val));
 #endif
 	    Em_Add_New_Rel (EMT_Put_Elf_Symbol (st), R_MIPS_GPREL, PC,
 			  PU_section);
@@ -2094,7 +2099,7 @@ static INT r_assemble_binary ( OP *op, BB *bb, ISA_PACK_INST *pinst )
 	}
 	ISA_LIT_CLASS lc = OP_opnd_lit_class(op, i);
 	FmtAssert(ISA_LC_Value_In_Class(val, lc),
-		  ("r_assemble_binary: illegal immediate value %" SCNd64 " for %s",
+		  ("r_assemble_binary: illegal immediate value %" PRId64 " for %s",
 		   val, ISA_LC_Name(lc)));
       } 
       else if (TN_is_enum(t)) {
@@ -3311,7 +3316,7 @@ Modify_Asm_String (char* asm_string, UINT32 position, bool memory,
     FmtAssert(!memory && TN_is_constant(tn) && TN_has_value(tn),
               ("ASM operand must be a register or a numeric constant"));
     char* buf = (char*) alloca(32);
-    sprintf(buf, "$%" SCNd64 "",TN_value(tn));
+    sprintf(buf, "$%" PRId64 "",TN_value(tn));
     name = buf;
   }
 #else
@@ -3321,7 +3326,7 @@ Modify_Asm_String (char* asm_string, UINT32 position, bool memory,
     FmtAssert(!(TN_is_symbol(tn) && ST_is_thread_local(TN_var(tn))),
               ("Modify_Asm_String: thread-local ASM operand NYI"));
     char* buf = (char*) alloca(32);
-    sprintf(buf, "%" SCNd64 "",TN_value(tn));
+    sprintf(buf, "%" PRId64 "",TN_value(tn));
     name = buf;
   }
 #endif
@@ -3942,8 +3947,8 @@ Emit_Loop_Note(BB *bb, FILE *file)
       INT64 trip_count = constant_trip ? TN_value(trip_tn) :
 					 (INT64)WN_loop_trip_est(wn);
       const char * const fmt =   anl_note
-			? " \"nesting depth: %d, %siterations: %" SCNd64 "\""
-			: ", nesting depth: %d, %siterations: %" SCNd64 "";
+			? " \"nesting depth: %d, %siterations: %" PRId64 "\""
+			: ", nesting depth: %d, %siterations: %" PRId64 "";
 
       fprintf (file, fmt, depth, estimated, trip_count);
     }
@@ -4022,11 +4027,13 @@ EMT_Assemble_BB ( BB *bb, WN *rwn )
       add_p2align = TRUE;
     }
 
-    if (add_p2align ||
-	(CG_p2align_freq > 0 &&
-	 branch_in_freq > CG_p2align_freq &&
-	 branch_in_ratio > 0.5)) {
-      fprintf(Asm_File, "\t.p2align 4,,%d\n", max_skip_bytes);
+    if (Assembly) {
+      if (add_p2align ||
+	  (CG_p2align_freq > 0 &&
+	   branch_in_freq > CG_p2align_freq &&
+	   branch_in_ratio > 0.5)) {
+	fprintf(Asm_File, "\t.p2align 4,,%d\n", max_skip_bytes);
+      }
     }
   }
 #endif
@@ -4095,7 +4102,7 @@ EMT_Assemble_BB ( BB *bb, WN *rwn )
       sprintf(buf, ".LDWend_%s", ST_name(entry_sym));
       label = &New_LABEL(CURRENT_SYMTAB, Label_Last_BB_PU_Entry[pu_entries+1]);
       LABEL_Init (*label, Save_Str(buf), LKIND_DEFAULT);
-      if (pu_entries > 0) 
+      if (pu_entries > 0 && Assembly) 
 	fprintf( Asm_File, 
 		 "%s:\n", LABEL_name(Label_Last_BB_PU_Entry[pu_entries]));
     }
@@ -4190,7 +4197,7 @@ EMT_Assemble_BB ( BB *bb, WN *rwn )
 #ifdef KEY
       if (!seen_asm)
 #endif
-	DevWarn ("label %s offset %" SCNd64 " doesn't match PC %d", 
+	DevWarn ("label %s offset %" PRId64 " doesn't match PC %d", 
 		LABEL_name(lab), Get_Label_Offset(lab), PC);
     }
 #endif
@@ -4210,7 +4217,7 @@ EMT_Assemble_BB ( BB *bb, WN *rwn )
     if ( Assembly ) {
       fprintf ( Asm_File, "%s:\t%s 0x%" SCNx64 "\n", ST_name(st), ASM_CMNT, ST_ofst(st));
     }
-    Is_True (ST_ofst(st) == PC, ("st %s offset %" SCNd64 " doesn't match PC %d", 
+    Is_True (ST_ofst(st) == PC, ("st %s offset %" PRId64 " doesn't match PC %d", 
 	ST_name(st), ST_ofst(st), PC));
     Is_True (   !Has_Base_Block(st) 
 	     || (ST_base(st) == (BB_cold(bb) ? cold_base : text_base)),
@@ -4850,7 +4857,7 @@ Fixup_Long_Branches (INT32 *hot_size, INT32 *cold_size)
 	    if (Trace_Longbr) {
 	      #pragma mips_frequency_hint NEVER
 	      fprintf (TFile, "Found a long branch to %s, ", LABEL_name(lab));
-	      fprintf (TFile, "location: %d, distance: %" SCNd64 "\n", 
+	      fprintf (TFile, "location: %d, distance: %" PRId64 "\n", 
 		      cur_pc - start_pc, val);
 	    }
 	    new_longb = (LONGB_INFO *)alloca (sizeof(LONGB_INFO));
@@ -5390,7 +5397,7 @@ Trace_Init_Loc ( INT scn_idx, Elf64_Xword scn_ofst, INT32 repeat)
   /* Emit the section/offset/repeat as a line prefix -- the caller will
    * add context-specific information:
    */
-  fprintf ( TFile, "<init>: Section %s (offset %4" SCNd64 " x%d): ",
+  fprintf ( TFile, "<init>: Section %s (offset %4" PRId64 " x%d): ",
 	    ST_name(em_scn[scn_idx].sym), scn_ofst, repeat );
 }
 
@@ -5504,7 +5511,7 @@ Write_Symbol (
     #pragma mips_frequency_hint NEVER
     Trace_Init_Loc (scn_idx, scn_ofst, repeat);
     fprintf ( TFile, "SYM " );
-    fprintf ( TFile, "%s %+" SCNd64 "\n", ST_name(sym), sym_ofst );
+    fprintf ( TFile, "%s %+" PRId64 "\n", ST_name(sym), sym_ofst );
   }
 
   /* make sure is allocated */
@@ -5571,10 +5578,10 @@ Write_Symbol (
 #ifdef TARG_MIPS
 	&& !CG_emit_non_gas_syntax
 #endif
-		) {
-		fprintf (Asm_File, "\t%s\t", AS_TYPE);
-		EMT_Write_Qualified_Name (Asm_File, sym);
-		fprintf (Asm_File, ", %s\n", AS_TYPE_FUNC);
+	    && Assembly ) { // type seems optional (gcc does not dump it)
+		fprintf ( Asm_File, "\t%s\t", AS_TYPE);
+		EMT_Write_Qualified_Name ( Asm_File, sym);
+		fprintf ( Asm_File, ", %s\n", AS_TYPE_FUNC);
 	}
     } 
     scn_ofst += address_size;
@@ -5624,9 +5631,9 @@ Write_Label (
     padding = repeat * address_size;
     if (Assembly && padding > 0) {
 #ifdef TARG_MIPS
-      if (CG_emit_non_gas_syntax)
-	fprintf(Asm_File, "\t%s %" SCNd64 "\n", ".space", (INT64)padding);
-      else
+	if (CG_emit_non_gas_syntax)
+	  fprintf( Asm_File, "\t%s %" PRId64 "\n", ".space", (INT64)padding);
+	else
 #endif
       ASM_DIR_ZERO(Asm_File, padding);
     }
@@ -5796,9 +5803,11 @@ Write_INITV (INITV_IDX invidx, INT scn_idx, Elf64_Word scn_ofst)
     case INITVKIND_ZERO:
       tcon = Host_To_Targ (INITV_mtype (inv), 0);
 #ifdef KEY
-      if (!emit_typeinfo)
-      scn_ofst = Write_TCON (&tcon, scn_idx, scn_ofst, INITV_repeat2 (inv),
-				etable, format);
+      if (!emit_typeinfo) {
+	if (Assembly)
+          scn_ofst = Write_TCON (&tcon, scn_idx, scn_ofst, INITV_repeat2 (inv),				
+          etable, format);
+      }
 #ifdef TARG_X8664
       else if (Gen_PIC_Call_Shared || Gen_PIC_Shared) // emit_typeinfo
       {
@@ -5813,19 +5822,21 @@ Write_INITV (INITV_IDX invidx, INT scn_idx, Elf64_Word scn_ofst)
 
     case INITVKIND_ONE:
       tcon = Host_To_Targ (INITV_mtype (inv), 1);
+      if (Assembly)
 #ifdef KEY
-      scn_ofst = Write_TCON (&tcon, scn_idx, scn_ofst, INITV_repeat2 (inv),
-				etable, format);
+	scn_ofst = Write_TCON (&tcon, scn_idx, scn_ofst, INITV_repeat2 (inv),
+			       etable, format);
 #else
       scn_ofst = Write_TCON (&tcon, scn_idx, scn_ofst, INITV_repeat2 (inv));
 #endif // KEY
       break;
     case INITVKIND_VAL:
+      if (Assembly)
 #ifdef KEY
-      scn_ofst = Write_TCON (&INITV_tc_val(inv), scn_idx, scn_ofst,
+        scn_ofst = Write_TCON (&INITV_tc_val(inv), scn_idx, scn_ofst,
                               INITV_repeat2(inv), etable, format);
 #else
-      scn_ofst = Write_TCON (&INITV_tc_val(inv), scn_idx, scn_ofst, 
+        scn_ofst = Write_TCON (&INITV_tc_val(inv), scn_idx, scn_ofst, 
 			      INITV_repeat2(inv));
 #endif // KEY
       break;
@@ -5916,12 +5927,14 @@ Write_INITV (INITV_IDX invidx, INT scn_idx, Elf64_Word scn_ofst)
     case INITVKIND_PAD:
       if (Assembly && (INITV_pad(inv)*INITV_repeat1(inv) > 0)) {
 #ifdef TARG_MIPS
-	if (CG_emit_non_gas_syntax)
-	  fprintf(Asm_File, "\t%s %" SCNd64 "\n", ".space", 
+	if (CG_emit_non_gas_syntax) {
+	  if (Assembly)
+	    fprintf(Asm_File, "\t%s %" PRId64 "\n", ".space", 
 		  (INT64)(INITV_pad(inv) * INITV_repeat1(inv)));
-	else
+        } else
 #endif
-        ASM_DIR_ZERO(Asm_File, INITV_pad(inv) * INITV_repeat1(inv));
+	  if (Assembly)
+	    ASM_DIR_ZERO(Asm_File, INITV_pad(inv) * INITV_repeat1(inv));
       }
 
       scn_ofst += INITV_pad(inv) * INITV_repeat1(inv);
@@ -5966,7 +5979,7 @@ Write_INITO (
       if (Assembly) {
 #ifdef TARG_MIPS
 	if (CG_emit_non_gas_syntax)
-	  fprintf(Asm_File, "\t%s %" SCNd64 "\n", ".space", 
+	  fprintf(Asm_File, "\t%s %" PRId64 "\n", AS_SPACE, 
 		  (INT64)(inito_ofst - scn_ofst));
 	else
 #endif
@@ -5976,7 +5989,7 @@ Write_INITO (
       scn_ofst = inito_ofst;
     } else {
       FmtAssert ( inito_ofst >= scn_ofst, 
-	("Write_INITO: DATA overlap 1, inito ofst @ %" SCNd64 ", scn ofst @ %" SCNd64 "",
+	("Write_INITO: DATA overlap 1, inito ofst @ %" PRId64 ", scn ofst @ %" PRId64 "",
 	  inito_ofst, scn_ofst));
     }
 
@@ -5993,7 +6006,8 @@ Write_INITO (
      */
     if ( INITO_val(ino) == (INITO_IDX) NULL ) {
       if ( ST_class(sym) == CLASS_CONST ) {
-	scn_ofst = Write_TCON (&ST_tcon_val(sym), scn_idx, scn_ofst, 1);
+	if (Assembly)
+          scn_ofst = Write_TCON (&ST_tcon_val(sym), scn_idx, scn_ofst, 1);
       }
     } else {
 	INITV_IDX inv;
@@ -6023,7 +6037,7 @@ Write_INITO (
 	    	INITV_flags(Initv_Table[inv]) == INITVFLAGS_EH_SPEC)
 	    {
 	    	type_label_emitted = true;
-            	fprintf ( Asm_File, "%s:\n", LABEL_name(labels[1]));
+            	if (Assembly) fprintf ( Asm_File, "%s:\n", LABEL_name(labels[1]));
 	    }
             scn_ofst = Write_INITV (inv, scn_idx, scn_ofst, range_table,
 	    		range_table ? INITV_flags (Initv_Table[inv]) : 0);
@@ -6037,7 +6051,7 @@ Write_INITO (
 			!INITV_flags(Initv_Table[INITV_next(inv)])))
 	    	{
 	    	    type_label_emitted = true;
-            	    fprintf ( Asm_File, "%s:\n", LABEL_name(labels[1]));
+            	    if (Assembly) fprintf ( Asm_File, "%s:\n", LABEL_name(labels[1]));
 	    	}
 	    }
 #else
@@ -6046,7 +6060,7 @@ Write_INITO (
         }
 #ifdef KEY
         if (range_table && !type_label_emitted)
-            fprintf ( Asm_File, "%s:\n", LABEL_name(labels[1]));
+            if (Assembly) fprintf ( Asm_File, "%s:\n", LABEL_name(labels[1]));
 #endif // KEY
     }
     if (Assembly) {
@@ -6223,7 +6237,7 @@ Print_ST_List(vector<ST*>& st_list, const char* header)
   vector<ST*>::iterator st_iter;
   for (st_iter = st_list.begin(); st_iter != st_list.end(); ++st_iter) {
     ST* st = *st_iter;
-    printf("%-25s%-15s%10" SCNu64 "%10" SCNd64 "\n",
+    printf("%-25s%-15s%10" SCNu64 "%10" PRId64 "\n",
            (ST_class(st) == CLASS_CONST ? "<constant>" : ST_name(st)), 
            (ST_class(Base_Symbol(st)) == CLASS_CONST ? "<constant>" :
             ST_name(Base_Symbol(st))),
@@ -6396,18 +6410,20 @@ Process_Initos_And_Literals (SYMTAB_IDX stab)
       // may need padding between objects in same section,
       // so always change origin
       Change_Section_Origin (base, ofst);
+      if (Assembly) {
 #ifdef KEY
-      if (CG_file_scope_asm_seen &&
-          TY_align (ST_type (st)) > 1)
-        fprintf( Asm_File, "\t%s\t%d\n", AS_ALIGN, 
+	if (CG_file_scope_asm_seen &&
+	    TY_align (ST_type (st)) > 1)
+	  fprintf( Asm_File, "\t%s\t%d\n", AS_ALIGN, 
 #if defined(BUILD_OS_DARWIN)
                  logtwo (TY_align (ST_type (st)))
 #else /* defined(BUILD_OS_DARWIN) */
-                 TY_align (ST_type (st))
+		 TY_align (ST_type (st))
 #endif /* defined(BUILD_OS_DARWIN) */
-               );
-      else
-        fprintf ( Asm_File, "\t%s\t0\n", AS_ALIGN );
+		   );
+	else
+	  fprintf ( Asm_File, "\t%s\t0\n", AS_ALIGN );
+      }
 #endif
       Write_INITO (ino, STB_scninfo_idx(base), ofst);
     }
@@ -6429,20 +6445,22 @@ Process_Initos_And_Literals (SYMTAB_IDX stab)
 #endif
       Change_Section_Origin (base, ofst);
 #ifdef KEY
-      if (CG_file_scope_asm_seen &&
-          TY_align (ST_type (st)) > 1)
-        fprintf( Asm_File, "\t%s\t%d\n", AS_ALIGN, 
+      if (Assembly) {
+        if (CG_file_scope_asm_seen &&
+            TY_align (ST_type (st)) > 1)
+          fprintf( Asm_File, "\t%s\t%d\n", AS_ALIGN, 
 #if defined(BUILD_OS_DARWIN)
-                 logtwo (TY_align (ST_type (st)))
+                   logtwo (TY_align (ST_type (st)))
 #else /* defined(BUILD_OS_DARWIN) */
-                 TY_align (ST_type (st))
+                   TY_align (ST_type (st))
 #endif /* defined(BUILD_OS_DARWIN) */
-               );
-      else
-        fprintf ( Asm_File, "\t%s\t0\n", AS_ALIGN );
+                 );
+        else
+          fprintf ( Asm_File, "\t%s\t0\n", AS_ALIGN );
 
-      fprintf ( Asm_File, TCON_Label_Format ":\n",
-                ST_IDX_index(ST_st_idx(st)) );
+        fprintf ( Asm_File, TCON_Label_Format ":\n",
+                  ST_IDX_index(ST_st_idx(st)) );
+      }
 #endif
       Write_TCON (&ST_tcon_val(st), STB_scninfo_idx(base), ofst, 1);
     }
@@ -6535,9 +6553,6 @@ Process_Bss_Data (SYMTAB_IDX stab)
     last_global_index = ST_Table_Size(GLOBAL_SYMTAB);
   }
 
-  // It's a bit counter-intuitive, but to get the list sorted
-  // by section and then by offset within section,
-  // should stable_sort in reverse order (offset then section).
   std::stable_sort (bss_list.begin(), bss_list.end(), size_lt);
   std::stable_sort (bss_list.begin(), bss_list.end(), offset_lt);
   std::stable_sort (bss_list.begin(), bss_list.end(), section_lt);
@@ -6596,7 +6611,7 @@ Process_Bss_Data (SYMTAB_IDX stab)
 #if defined(TARG_X8664) || defined(TARG_MIPS)
 	// Fix bug 617
 	// Do not emit .org for any symbols with section attributes.
-	{
+	if (Assembly) { // dump section & alignment info
 	  ST* tmp_base = sym;
 	  BOOL has_named_section = FALSE;
 	  if ( ST_base(tmp_base) == base && ST_has_named_section (tmp_base)) {
@@ -6692,10 +6707,10 @@ Process_Bss_Data (SYMTAB_IDX stab)
 		}
 		// assume here that if multiple symbols with same offset,
 		// are sorted so that largest size is last.
-		if (size_to_skip > 0) {
+		if (size_to_skip > 0 && Assembly) {
 #ifdef TARG_MIPS
 		    if (CG_emit_non_gas_syntax)
-		      fprintf(Asm_File, "\t%s %" SCNd64 "\n", ".space", (INT64)size_to_skip);
+		      fprintf(Asm_File, "\t%s %" PRId64 "\n", ".space", (INT64)size_to_skip);
 		    else
 #endif
 		    ASM_DIR_SKIP(Asm_File, size_to_skip);
@@ -7219,7 +7234,7 @@ EMT_Emit_PU ( FILE *asm_file, ST *pu, DST_IDX pu_dst, WN *rwn )
 #endif  
 #endif
 
-  fprintf(asm_file, ".cfi_startproc\n");
+  if (Assembly) fprintf(asm_file, ".cfi_startproc\n");
   if (generate_dwarf) {
     Elf64_Word symindex;
     INT eh_offset;
@@ -7305,16 +7320,16 @@ EMT_Emit_PU ( FILE *asm_file, ST *pu, DST_IDX pu_dst, WN *rwn )
     Setup_Text_Section_For_BB(bb);
     EMT_Assemble_BB (bb, rwn);
   }
-  fprintf(asm_file, ".cfi_endproc\n");
+  if (Assembly) fprintf(asm_file, ".cfi_endproc\n");
 
 #ifdef KEY
   // Emit Last_Label at the end of the PU to guide Dwarf DW_AT_high_pc
-  fprintf( Asm_File, "%s:\n", LABEL_name(Last_Label));
+  if (Assembly) fprintf( Asm_File, "%s:\n", LABEL_name(Last_Label));
   Label_Last_BB_PU_Entry[pu_entries] = Last_Label;
 #if ! defined(BUILD_OS_DARWIN) && !defined(_WIN32)
   // Mach-O as 1.38 doesn't support .size
   // Bug 1275
-  fprintf( Asm_File, "\t.size %s, %s-%s\n", 
+  if (Assembly) fprintf( Asm_File, "\t.size %s, %s-%s\n", 
 	   ST_name_decorated(pu), LABEL_name(Last_Label),
 	   ST_name_decorated(pu));
 #endif /* defined(BUILD_OS_DARWIN) */
@@ -7408,7 +7423,7 @@ static INT format_operand(
     INT64 imm = n + 1;
     ISA_LIT_CLASS lc = ISA_OPERAND_VALTYP_Literal_Class(vtype);
     if (!ISA_LC_Value_In_Class(imm, lc)) imm = ISA_LC_Min(lc);
-    len = sprintf(buf, "%" SCNd64 "", imm) + 1;
+    len = sprintf(buf, "%" PRId64 "", imm) + 1;
   } else if (ISA_OPERAND_VALTYP_Is_Enum(vtype)) {
     ISA_ENUM_CLASS ec = ISA_OPERAND_VALTYP_Enum_Class(vtype);
     len = sprintf(buf, "%d", ISA_ECV_Intval(ISA_EC_First_Value(ec))) + 1;

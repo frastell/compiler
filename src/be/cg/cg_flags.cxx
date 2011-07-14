@@ -175,6 +175,32 @@ BOOL CG_enable_cbpo;
 BOOL CG_split_bb = TRUE;
 BOOL CG_split_bb_Set = FALSE;
 #endif
+
+INT32 CG_TIREX_stage = 0;
+
+INT32 CG_LAO_activation = 0;
+INT32 CG_LAO_conversion = 0;
+INT32 CG_LAO_coalescing = 0;
+INT32 CG_LAO_rewriting = 0;
+INT32 CG_LAO_predication = 0;
+INT32 CG_LAO_scheduling = 0;
+INT32 CG_LAO_allocation = 0;
+INT32 CG_LAO_rcmssolving = 0;
+INT32 CG_LAO_preloading = 0;
+INT32 CG_LAO_l1missextra = 0;
+INT32 CG_LAO_compensation = 0;
+INT32 CG_LAO_speculation = 0;
+INT32 CG_LAO_relaxation = 0;
+INT32 CG_LAO_pipelining = 0;
+INT32 CG_LAO_logtimeout = 0;
+INT32 CG_LAO_renaming = 0;
+INT32 CG_LAO_boosting = 0;
+INT32 CG_LAO_aliasing = 0;
+INT32 CG_LAO_prepadding = 0;
+INT32 CG_LAO_postpadding = 0;
+INT32 CG_LAO_overrun = 0;
+INT32 CG_LAO_opslimit = 0;
+
 #ifdef CGG_ENABLED
 BOOL CG_enable_cgg;
 INT32 CG_cgg_level;

@@ -493,6 +493,30 @@ extern BOOL CG_enable_spec_fsqrt_overridden;
 extern BOOL CG_create_madds;
 extern BOOL CG_enable_load_index;
 
+extern INT32 CG_TIREX_stage;	/* TIREX emit level */
+extern INT32 CG_LAO_activation;	/* LAO activation */
+extern INT32 CG_LAO_conversion;	/* LAO SSA construction flags */
+extern INT32 CG_LAO_coalescing;	/* LAO SSA coalescing flags */
+extern INT32 CG_LAO_rewriting;	/* LAO SSA rewriting flags */
+extern INT32 CG_LAO_predication;	/* LAO predication algorithm */
+extern INT32 CG_LAO_scheduling;	/* LAO scheduling algorithm */
+extern INT32 CG_LAO_allocation;	/* LAO allocation algorithm */
+extern INT32 CG_LAO_rcmssolving;	/* LAO RCMS solving flags */
+extern INT32 CG_LAO_preloading;	/* LAO memory preloading level */
+extern INT32 CG_LAO_l1missextra;	/* LAO extra latency for preloading */
+extern INT32 CG_LAO_compensation;	/* LAO compensation level */
+extern INT32 CG_LAO_speculation;	/* LAO speculation level */
+extern INT32 CG_LAO_relaxation;	/* LAO relaxation level */
+extern INT32 CG_LAO_pipelining;	/* LAO software pipelining level */
+extern INT32 CG_LAO_logtimeout;	/* LAO integer linear programming timeout */
+extern INT32 CG_LAO_renaming;	/* LAO register renaming level */
+extern INT32 CG_LAO_boosting;	/* LAO operation boosting level */
+extern INT32 CG_LAO_aliasing;	/* LAO memory aliasing level */
+extern INT32 CG_LAO_prepadding;	/* LAO data pre-padding in bytes */
+extern INT32 CG_LAO_postpadding;	/* LAO data post-padding in bytes */
+extern INT32 CG_LAO_overrun;	/* LAO pipeline overrun */
+extern INT32 CG_LAO_opslimit;	/* LAO maximum number of OPs to compute memory dependences */
+
 extern BOOL CG_enable_BB_splitting;
 #define CG_bblength_default 300      /* default value for CG_split_BB_length */
 #define CG_bblength_min	 100	     /* don't let the value get too small */

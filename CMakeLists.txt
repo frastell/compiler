@@ -319,6 +319,7 @@ ADD_DEFINITIONS(-D_SGI_SOURCE
                 -D__GNU_BUG_WORKAROUND
 #                -DTARG_X8664
                 -DKEY
+		-DTIREX_ENABLED
                 -DFE_GNU_4_2_0
                 -D_LONGLONG
                 -D_MIPSEL

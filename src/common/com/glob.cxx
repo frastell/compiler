@@ -121,7 +121,7 @@ char *IR_File_Name  = NULL;	/* SGIR	file */
 char *Irb_File_Name = NULL;	/* ACIR	intermediate file */
 char *Asm_File_Name = NULL;	/* Assembly file */
 char *Ipl_File_Name = NULL;     /* ipl output file */
-char *Lai_File_Name = NULL;     /* LAI file */
+char *Trx_File_Name = NULL;     /* Tirex file */
 char *Instrumentation_File_Name = NULL; /* instrumentation file */
 char *Feedback_File_Name = NULL; /* Feedback file */
 char *call_graph_file_name = NULL; /* Function call graph file */
@@ -147,7 +147,7 @@ FILE *Tlog_File = NULL;		/* Transformation log file */
 FILE *IR_File  = NULL;		/* SGIR	file */
 FILE *Irb_File = NULL;		/* ACIR	intermediate file */
 FILE *Asm_File = NULL;		/* Assembly file */
-FILE *Lai_File = NULL;          /* LAI file */
+FILE *Trx_File = NULL;          /* Tirex file */
 FILE *Lib_File = NULL;		/* Program library file	*/
 FILE *Tim_File = NULL;		/* Timer report	file, usually TFile */
 
